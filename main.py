@@ -90,6 +90,26 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
+async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Welcome members when Telegram reports that they joined the group."""
+    msg = update.effective_message
+    chat = update.effective_chat
+    if not msg or not chat or chat.type not in GROUP_TYPES or not msg.new_chat_members:
+        return
+
+    for member in msg.new_chat_members:
+        if member.is_bot:
+            continue
+        name = member.mention_html()
+        await msg.reply_text(
+            f"🎉 هلا وغلا {name}، نورت كروب المهني!\n\n"
+            "🛡️ نتمنى إلك وقت ممتع ويانه.\n"
+            "📌 اقرا قوانين الكروب بكتابة /rules\n"
+            "🤝 حياك الله بين أخوانك!",
+            parse_mode="HTML",
+        )
+
+
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.effective_message.reply_text(
         "🛡️ أوامر حارس المهني\n\n"
@@ -346,6 +366,7 @@ def main() -> None:
     app.add_handler(CommandHandler("unban", unban))
     app.add_handler(CommandHandler("links_on", links_on))
     app.add_handler(CommandHandler("links_off", links_off))
+    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
     app.add_error_handler(on_error)
     log.info("Starting Mehni Guard")
