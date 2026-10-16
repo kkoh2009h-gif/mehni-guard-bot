@@ -305,7 +305,7 @@ async def auto_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # Match greetings and common friendly phrases without replying to every message.
     replies = [
         (("حارس",),
-         "ها يروحه 😂 شتريد؟ حارس المهني حاضر بالخدمة 🛡️"),
+         "ها يروحا"),
         (("بوت", "يا بوت", "بوتنا"),
          "عيون البوت 👀🛡️\nآمروني، حاضر وياكم!"),
         (("mehni guard bot", "mehniguardbot", "حارس المهني"),
