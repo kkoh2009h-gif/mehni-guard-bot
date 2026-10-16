@@ -294,7 +294,7 @@ async def links_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.effective_message.reply_text("🔗 تم إيقاف منع الروابط.")
 
 
-async def reply_to_salam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def auto_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.effective_message
     chat = update.effective_chat
     user = update.effective_user
@@ -302,15 +302,35 @@ async def reply_to_salam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
 
     body = (msg.text or "").strip().lower()
-    greetings = (
-        "السلام عليكم",
-        "سلام عليكم",
-        "السلام عليكم ورحمة الله وبركاته",
-        "السّلام عليكم",
-        "سلام",
-    )
-    if any(greeting in body for greeting in greetings):
-        await msg.reply_text("وعليكم السلام ورحمة الله وبركاته 🌹\nحياك الله بكروب المهني 🛡️")
+    # Match greetings and common friendly phrases without replying to every message.
+    replies = [
+        (("السلام عليكم ورحمة الله وبركاته", "السلام عليكم", "سلام عليكم", "السّلام عليكم"),
+         "وعليكم السلام ورحمة الله وبركاته 🌹\nحياك الله بكروب المهني 🛡️"),
+        (("صباح الخير", "صباحو"),
+         "صباح النور والسرور ☀️🌹\nالله يجعل يومكم خير وبركة."),
+        (("مساء الخير", "مسا الخير", "مساء النور"),
+         "مساء الورد والياسمين 🌙🌹\nنورتوا الكروب."),
+        (("شلونكم", "شخباركم", "كيفكم", "شلونك"),
+         "الحمد لله بخير، عساكم دوم بخير وعافية ❤️\nإنتوا شلونكم؟"),
+        (("شكرا", "شكراً", "مشكور", "مشكورة", "تسلم", "تسلمين"),
+         "العفو، بالخدمة دائماً 🌹❤️"),
+        (("مبروك", "مبارك", "الف مبروك", "ألف مبروك"),
+         "ألف ألف مبروك 🎉❤️\nربي يتممها عليكم بالخير والفرح."),
+        (("عيدكم مبارك", "كل عام وانتم بخير", "كل عام وأنتم بخير"),
+         "وإنتوا بألف خير وصحة وسلامة 🌙✨"),
+        (("تصبحون على خير", "تصبح على خير"),
+         "وإنت من أهله 🌙🤍\nأحلام سعيدة."),
+        (("باي", "مع السلامة", "اشوفكم على خير", "أشوفكم على خير"),
+         "الله وياك ويحفظك 🤍👋\nنشوفك على خير."),
+        (("وين القوانين", "قوانين الكروب", "قوانين الكروب؟"),
+         "📌 قوانين الكروب تگدر تشوفها بكتابة /rules"),
+        (("منو الادمن", "منو المشرف", "منو المشرفين"),
+         "للاستفسارات أو الشكاوى، راسل أحد مشرفي الكروب بكل احترام 🛡️"),
+    ]
+    for phrases, reply in replies:
+        if any(phrase in body for phrase in phrases):
+            await msg.reply_text(reply)
+            return
 
 
 async def moderate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -386,7 +406,7 @@ def main() -> None:
     app.add_handler(CommandHandler("links_on", links_on))
     app.add_handler(CommandHandler("links_off", links_off))
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply_to_salam))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
     app.add_error_handler(on_error)
     log.info("Starting Mehni Guard")
