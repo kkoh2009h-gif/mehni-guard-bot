@@ -294,6 +294,25 @@ async def links_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.effective_message.reply_text("🔗 تم إيقاف منع الروابط.")
 
 
+async def reply_to_salam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg = update.effective_message
+    chat = update.effective_chat
+    user = update.effective_user
+    if not msg or not chat or not user or user.is_bot or chat.type not in GROUP_TYPES:
+        return
+
+    body = (msg.text or "").strip().lower()
+    greetings = (
+        "السلام عليكم",
+        "سلام عليكم",
+        "السلام عليكم ورحمة الله وبركاته",
+        "السّلام عليكم",
+        "سلام",
+    )
+    if any(greeting in body for greeting in greetings):
+        await msg.reply_text("وعليكم السلام ورحمة الله وبركاته 🌹\nحياك الله بكروب المهني 🛡️")
+
+
 async def moderate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg, chat, user = update.effective_message, update.effective_chat, update.effective_user
     if not msg or not chat or not user or user.is_bot or chat.type not in GROUP_TYPES:
@@ -367,6 +386,7 @@ def main() -> None:
     app.add_handler(CommandHandler("links_on", links_on))
     app.add_handler(CommandHandler("links_off", links_off))
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply_to_salam))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
     app.add_error_handler(on_error)
     log.info("Starting Mehni Guard")
