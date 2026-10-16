@@ -1,4 +1,5 @@
 import logging
+import json
 import os
 import re
 import time
@@ -31,6 +32,39 @@ if not TOKEN:
 WARNINGS = defaultdict(int)  # (chat_id, user_id) -> count
 RECENT = defaultdict(lambda: deque(maxlen=10))  # (chat_id, user_id) -> [(time, text)]
 LINK_FILTER = defaultdict(lambda: True)
+CUSTOM_REPLIES = defaultdict(dict)  # chat_id -> {trigger: reply}
+PENDING_REPLY = {}  # (chat_id, user_id) -> {"stage": "trigger"|"reply", "trigger": str}
+CUSTOM_REPLIES_FILE = "custom_replies.json"
+
+
+def load_custom_replies() -> None:
+    try:
+        with open(CUSTOM_REPLIES_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        for chat_id, replies in data.items():
+            if isinstance(replies, dict):
+                CUSTOM_REPLIES[int(chat_id)].update(
+                    {str(trigger): str(reply) for trigger, reply in replies.items()}
+                )
+    except FileNotFoundError:
+        pass
+    except Exception:
+        log.exception("Could not load custom replies")
+
+
+def save_custom_replies() -> None:
+    try:
+        with open(CUSTOM_REPLIES_FILE, "w", encoding="utf-8") as file:
+            json.dump(
+                {str(chat_id): replies for chat_id, replies in CUSTOM_REPLIES.items()},
+                file,
+                ensure_ascii=False,
+                indent=2,
+            )
+    except Exception:
+        log.exception("Could not save custom replies")
+
+
 URL_RE = re.compile(r"(https?://|www\.|t\.me/|telegram\.me/)", re.IGNORECASE)
 GROUP_TYPES = {"group", "supergroup"}
 
@@ -302,6 +336,61 @@ async def auto_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         return
 
     body = (msg.text or "").strip().lower()
+    state_key = (chat.id, user.id)
+
+    # Let group admins create custom automatic replies through a short conversation.
+    if body in {"الغاء", "إلغاء", "الغاء الرد", "إلغاء الرد"} and state_key in PENDING_REPLY:
+        if await is_admin(update, context, user.id):
+            PENDING_REPLY.pop(state_key, None)
+            await msg.reply_text("تم إلغاء إضافة الرد.")
+            return
+
+    if state_key in PENDING_REPLY:
+        if not await is_admin(update, context, user.id):
+            PENDING_REPLY.pop(state_key, None)
+        else:
+            state = PENDING_REPLY[state_key]
+            if not body:
+                await msg.reply_text("اكتب نصاً صالحاً، أو اكتب «إلغاء» للإلغاء.")
+                return
+            if state["stage"] == "trigger":
+                state["trigger"] = body
+                state["stage"] = "reply"
+                await msg.reply_text(
+                    "تمام 👍 هسه اكتب الرد اللي تريدني أرسله من أحد يكتب هالكلمة أو الجملة."
+                )
+                return
+            trigger = state["trigger"]
+            CUSTOM_REPLIES[chat.id][trigger] = (msg.text or "").strip()
+            save_custom_replies()
+            PENDING_REPLY.pop(state_key, None)
+            await msg.reply_text(
+                f"✅ تمت إضافة الرد بنجاح!\n\n"
+                f"🔹 الكلمة أو الجملة: {trigger}\n"
+                f"🔹 الرد: {(msg.text or '').strip()}\n\n"
+                "تگدر تضيف رد ثاني بكتابة «اضف رد»."
+            )
+            return
+
+    if body in {"اضف رد", "أضف رد", "اضافة رد", "إضافة رد"}:
+        if await is_admin(update, context, user.id):
+            PENDING_REPLY[state_key] = {"stage": "trigger"}
+            await msg.reply_text(
+                "✍️ اكتب الكلمة أو الجملة اللي تريدني أرد عليها.\n"
+                "مثال: شلونكم\n\n"
+                "للإلغاء اكتب «إلغاء»."
+            )
+        else:
+            await msg.reply_text("عذراً، إضافة الردود للمشرفين فقط 🛡️")
+        return
+
+    # Custom replies are specific to this group and survive restarts when the host keeps files.
+    custom = CUSTOM_REPLIES.get(chat.id, {})
+    for trigger in sorted(custom, key=len, reverse=True):
+        if trigger and trigger in body:
+            await msg.reply_text(custom[trigger])
+            return
+
     # Match greetings and common friendly phrases without replying to every message.
     replies = [
         (("حارس",),
@@ -411,6 +500,7 @@ def main() -> None:
     app.add_handler(CommandHandler("unban", unban))
     app.add_handler(CommandHandler("links_on", links_on))
     app.add_handler(CommandHandler("links_off", links_off))
+    load_custom_replies()
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
