@@ -2,6 +2,8 @@ import logging
 import os
 import re
 import time
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from collections import defaultdict, deque
 from datetime import timedelta
 
@@ -312,7 +314,26 @@ async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.error("Unhandled bot error", exc_info=context.error)
 
 
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(b"Mehni Guard is running")
+
+    def log_message(self, format, *args):
+        return
+
+
+def start_health_server() -> None:
+    port = int(os.getenv("PORT", "10000"))
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    log.info("Health server listening on port %s", port)
+
+
 def main() -> None:
+    start_health_server()
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
