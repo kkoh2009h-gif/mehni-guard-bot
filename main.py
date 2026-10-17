@@ -137,13 +137,8 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
         if member.is_bot:
             continue
         name = member.mention_html()
-        await msg.reply_text(
-            f"🎉 هلا وغلا {name}، نورت كروب المهني!\n\n"
-            "🛡️ نتمنى إلك وقت ممتع ويانه.\n"
-            "📌 اقرا قوانين الكروب بكتابة /rules\n"
-            "🤝 حياك الله بين أخوانك!",
-            parse_mode="HTML",
-        )
+        welcome = WELCOME_TEXT[chat.id].format(name=name)
+        await msg.reply_text(welcome, parse_mode="HTML")
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
