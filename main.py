@@ -757,12 +757,12 @@ async def auto_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     }
     if body.strip("؟?!،. ") in developer_questions:
         keyboard = InlineKeyboardMarkup([[
-            InlineKeyboardButton("👨‍💻 حساب المهندس مچاوي", url="https://t.me/mchaweXx")
+            InlineKeyboardButton("👨‍💻 حساب المهندس مچاوي", url="https://t.me/IBIBNI1")
         ]])
         await msg.reply_text(
             "👨‍💻 مطوّر حارس المهني\\n\\n"
             "المهندس مچاوي\\n"
-            "📱 Telegram: @mchaweXx\\n"
+            "📱 Telegram: @IBIBNI1\\n"
             "✨ بصمة مچاوي — تطوير وبرمجة البوت",
             reply_markup=keyboard,
         )
