@@ -10,6 +10,8 @@ from datetime import timedelta
 
 from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatMemberStatus
+from library import register_library_handlers
+
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
@@ -715,6 +717,7 @@ def main() -> None:
     app.add_handler(CommandHandler("replies", list_replies))
     app.add_handler(CommandHandler("delreply", delete_reply))
     load_custom_replies()
+    register_library_handlers(app)
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
