@@ -522,6 +522,26 @@ async def auto_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     body = (msg.text or "").strip().lower()
     state_key = (chat.id, user.id)
 
+    # The welcome editor button asks the admin for a new welcome message.
+    if context.user_data.get("await_welcome_chat") == chat.id:
+        if not await is_admin(update, context, user.id):
+            context.user_data.pop("await_welcome_chat", None)
+        elif body in {"الغاء", "إلغاء"}:
+            context.user_data.pop("await_welcome_chat", None)
+            await msg.reply_text("تم إلغاء تغيير الترحيب.")
+            return
+        else:
+            template = (msg.text or "").strip()
+            if not template:
+                await msg.reply_text("اكتب رسالة ترحيب نصية، أو اكتب إلغاء.")
+                return
+            if "{name}" not in template:
+                template += "\\n\\n👋 نورت الكروب!"
+            WELCOME_TEXT[chat.id] = template
+            context.user_data.pop("await_welcome_chat", None)
+            await msg.reply_text("✅ تم تحديث رسالة الترحيب لهذا التشغيل.")
+            return
+
     # Let group admins create custom automatic replies through a short conversation.
     if body in {"الغاء", "إلغاء", "الغاء الرد", "إلغاء الرد"} and state_key in PENDING_REPLY:
         if await is_admin(update, context, user.id):
