@@ -282,18 +282,34 @@ async def report_whisper_callback(update: Update, context: ContextTypes.DEFAULT_
 
 
 async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Welcome members when Telegram reports that they joined the group."""
+    """Delete Telegram's join service message, then welcome human members separately."""
     msg = update.effective_message
     chat = update.effective_chat
     if not msg or not chat or chat.type not in GROUP_TYPES or not msg.new_chat_members:
         return
 
+    # Telegram creates a service message such as "X added Y". Bots cannot prevent
+    # it from being created, but an admin bot with Delete Messages permission can
+    # remove it as soon as it receives the update.
+    try:
+        await msg.delete()
+    except Exception:
+        log.warning(
+            "Could not delete join service message in chat %s; "
+            "make the bot an admin with Delete Messages permission.",
+            chat.id,
+            exc_info=True,
+        )
+
+    # Keep the existing welcome feature for people, but do not welcome bots.
     for member in msg.new_chat_members:
         if member.is_bot:
             continue
         name = member.mention_html()
         welcome = WELCOME_TEXT[chat.id].format(name=name)
-        await msg.reply_text(welcome, parse_mode="HTML")
+        await context.bot.send_message(
+            chat_id=chat.id, text=welcome, parse_mode="HTML"
+        )
 
 
 def admin_menu_keyboard(chat_id: int) -> InlineKeyboardMarkup:
