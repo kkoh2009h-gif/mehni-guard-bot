@@ -166,9 +166,28 @@ async def library_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if not matches:
             matches = [(i, b) for i, b in enumerate(BOOKS) if department.casefold() in b.get("department", "").casefold()]
         if not matches:
+            source_buttons = {
+                "الصناعي": ("📘 موقع التعليم المهني", "https://vocational.edu.iq/"),
+                "الحاسوب وتقنية المعلومات": ("📘 موقع التعليم المهني", "https://vocational.edu.iq/"),
+                "التجاري": ("📄 ملازم المهني التجاري", "https://www.iraqmlzm.com/mehani_main.php"),
+                "الزراعي": ("📄 ملازم المهني الزراعي", "https://www.iraqmlzm.com/mehani_main.php"),
+                "الفنون التطبيقية": ("📄 ملازم الفنون التطبيقية", "https://www.iraqmlzm.com/mehani_main.php"),
+                "السياحة والفندقة": ("📘 موقع التعليم المهني", "https://vocational.edu.iq/"),
+                "الإدارة والاقتصاد": ("📄 ملازم التجاري", "https://www.iraqmlzm.com/mehani_main.php"),
+                "الاتصالات والكهرباء": ("📘 موقع التعليم المهني", "https://vocational.edu.iq/"),
+                "الميكانيك والسيارات": ("📘 موقع التعليم المهني", "https://vocational.edu.iq/"),
+                "البناء والإنشاءات": ("📘 موقع التعليم المهني", "https://vocational.edu.iq/"),
+                "التمريض والاختصاصات الصحية": ("📘 موقع التعليم المهني", "https://vocational.edu.iq/"),
+                "أقسام مهنية أخرى": ("📚 ملازم العراق - المهني", "https://www.iraqmlzm.com/mehani_main.php"),
+            }
+            label, url = source_buttons.get(department, ("📚 ملازم العراق - المهني", "https://www.iraqmlzm.com/mehani_main.php"))
             await query.edit_message_text(
-                f"📚 {department}\n\nماكو ملفات مضافة لهذا القسم حالياً. المشرف يگدر يضيف ملفات باستخدام /addbook.",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ رجوع للأقسام", callback_data="library:home")]]),
+                f"📚 {department}\\n\\nماكو ملفات PDF مرفوعة داخل البوت لهذا القسم بعد. تگدر تتصفح المصادر الخارجية من الأزرار أدناه، أو يضيف المشرف ملف باستخدام /addbook.",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton(label, url=url)],
+                    [InlineKeyboardButton("📄 مكتبة الملازم المهنية", url="https://www.iraqmlzm.com/mehani_main.php")],
+                    [InlineKeyboardButton("⬅️ رجوع للأقسام", callback_data="library:home")],
+                ]),
             )
             return
         rows = []
