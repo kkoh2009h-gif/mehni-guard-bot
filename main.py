@@ -31,6 +31,8 @@ if not TOKEN:
 # This starter version keeps counters in memory; they reset when the bot restarts.
 WARNINGS = defaultdict(int)  # (chat_id, user_id) -> count
 RECENT = defaultdict(lambda: deque(maxlen=10))  # (chat_id, user_id) -> [(time, text)]
+SPAM_FILTER = defaultdict(lambda: True)
+WELCOME_TEXT = defaultdict(lambda: "🎉 هلا وغلا {name}، نورت كروب المهني!\\n\\n🛡️ نتمنى إلك وقت ممتع ويانه.\\n📌 اقرا قوانين الكروب بكتابة /rules\\n🤝 حياك الله بين أخوانك!")
 LINK_FILTER = defaultdict(lambda: True)
 CUSTOM_REPLIES = defaultdict(dict)  # chat_id -> {trigger: reply}
 PENDING_REPLY = {}  # (chat_id, user_id) -> {"stage": "trigger"|"reply", "trigger": str}
@@ -156,6 +158,10 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/unban USER_ID — فك الحظر\n"
         "/links_on — منع الروابط\n"
         "/links_off — السماح بالروابط\n"
+        "/spam_on — تفعيل حماية التكرار\n"
+        "/spam_off — إيقاف حماية التكرار\n"
+        "/setwelcome نص الترحيب — تعديل الترحيب (استخدم {name} للاسم)\n"
+        "/stats — إحصائيات الحماية لهذا الكروب\n"
         "/replies — عرض الردود التلقائية المضافة\n"
         "/delreply كلمة — حذف رد تلقائي (مثال: /delreply شلونكم)\n"
         "اكتب «اضف رد» لإضافة رد جديد\n"
@@ -368,6 +374,52 @@ async def links_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.effective_message.reply_text("🔗 تم إيقاف منع الروابط.")
 
 
+async def spam_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if await admin_only(update, context):
+        SPAM_FILTER[update.effective_chat.id] = True
+        await update.effective_message.reply_text("🛡️ تم تفعيل حماية تكرار الرسائل.")
+
+
+async def spam_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if await admin_only(update, context):
+        SPAM_FILTER[update.effective_chat.id] = False
+        await update.effective_message.reply_text("⚠️ تم إيقاف حماية تكرار الرسائل.")
+
+
+async def set_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    template = " ".join(context.args).strip()
+    if not template:
+        await update.effective_message.reply_text(
+            "اكتب نص الترحيب بعد الأمر. مثال:\\n"
+            "/setwelcome هلا {name} نورت كروبنا!\\n"
+            "استخدم {name} حتى يظهر اسم العضو."
+        )
+        return
+    if "{name}" not in template:
+        template += "\\n\\n👋 نورت الكروب!"
+    WELCOME_TEXT[update.effective_chat.id] = template
+    await update.effective_message.reply_text("✅ تم تحديث رسالة الترحيب لهذا التشغيل.")
+
+
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    chat_id = update.effective_chat.id
+    warning_count = sum(count for (cid, _), count in WARNINGS.items() if cid == chat_id)
+    reply_count = len(CUSTOM_REPLIES.get(chat_id, {}))
+    link_state = "مفعّل" if LINK_FILTER[chat_id] else "متوقف"
+    spam_state = "مفعّلة" if SPAM_FILTER[chat_id] else "متوقفة"
+    await update.effective_message.reply_text(
+        "📊 إحصائيات حماية الكروب\\n\\n"
+        f"🔗 منع الروابط: {link_state}\\n"
+        f"🔁 منع التكرار: {spam_state}\\n"
+        f"⚠️ التحذيرات الحالية: {warning_count}\\n"
+        f"💬 الردود التلقائية: {reply_count}"
+    )
+
+
 async def auto_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.effective_message
     chat = update.effective_chat
@@ -487,6 +539,8 @@ async def moderate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     now = time.monotonic()
     recent = RECENT[(chat.id, user.id)]
     normalized = body.strip()
+    if not SPAM_FILTER[chat.id]:
+        return
     recent.append((now, normalized))
     duplicates = sum(1 for stamp, text in recent if normalized and text == normalized and now - stamp <= 20)
     if duplicates >= 4:
@@ -540,6 +594,10 @@ def main() -> None:
     app.add_handler(CommandHandler("unban", unban))
     app.add_handler(CommandHandler("links_on", links_on))
     app.add_handler(CommandHandler("links_off", links_off))
+    app.add_handler(CommandHandler("spam_on", spam_on))
+    app.add_handler(CommandHandler("spam_off", spam_off))
+    app.add_handler(CommandHandler("setwelcome", set_welcome))
+    app.add_handler(CommandHandler("stats", stats))
     app.add_handler(CommandHandler("replies", list_replies))
     app.add_handler(CommandHandler("delreply", delete_reply))
     load_custom_replies()
