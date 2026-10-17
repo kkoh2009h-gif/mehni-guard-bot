@@ -746,6 +746,79 @@ async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
+async def natural_moderation_commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg = update.effective_message
+    chat = update.effective_chat
+    actor = update.effective_user
+    if not msg or not chat or not actor or chat.type not in GROUP_TYPES:
+        return
+    phrase = (msg.text or "").strip().casefold()
+    if phrase not in {"تحذير", "تحذيراته", "سجل مخالفاته", "تصفير تحذيراته"}:
+        return
+    target_msg = msg.reply_to_message
+    if not target_msg or not target_msg.from_user or target_msg.from_user.is_bot:
+        await msg.reply_text("💡 اكتب العبارة بالرد على رسالة العضو المطلوب.")
+        return
+    target = target_msg.from_user
+    if phrase == "تحذير":
+        if not await admin_only(update, context):
+            return
+        context.args = []
+        key = (chat.id, target.id)
+        WARNINGS[key] += 1
+        count = WARNINGS[key]
+        add_infraction(chat.id, target.id, "تحذير من المشرف", actor.id)
+        save_moderation_data()
+        reply = f"⚠️ تم تحذير {target.full_name}: {count}/5."
+        if count == 3:
+            try:
+                if not await bot_has_restrict_rights(update, context):
+                    reply += "\nوصل إلى 3 تحذيرات، لكن البوت لا يملك صلاحية الكتم."
+                else:
+                    await context.bot.restrict_chat_member(chat.id, target.id, ChatPermissions(can_send_messages=False), until_date=timedelta(minutes=10))
+                    add_infraction(chat.id, target.id, "كتم تلقائي 10 دقائق عند التحذير الثالث", context.bot.id)
+                    save_moderation_data()
+                    reply += "\n🔇 تم كتمه 10 دقائق."
+            except Exception:
+                log.exception("Natural warning auto-mute failed")
+                reply += "\nتعذر الكتم؛ تحقق من صلاحيات البوت."
+        elif count >= 5:
+            try:
+                if not await bot_has_restrict_rights(update, context):
+                    reply += "\nوصل إلى 5 تحذيرات، لكن البوت لا يملك صلاحية الحظر."
+                else:
+                    await context.bot.ban_chat_member(chat.id, target.id)
+                    add_infraction(chat.id, target.id, "حظر تلقائي عند التحذير الخامس", context.bot.id)
+                    save_moderation_data()
+                    reply += "\n⛔ تم حظره عند التحذير الخامس."
+            except Exception:
+                log.exception("Natural warning auto-ban failed")
+                reply += "\nتعذر الحظر؛ تحقق من صلاحيات البوت."
+        await msg.reply_text(reply)
+        return
+    if phrase == "تصفير تحذيراته":
+        if not await admin_only(update, context):
+            return
+        key = (chat.id, target.id)
+        previous = WARNINGS.get(key, 0)
+        WARNINGS[key] = 0
+        add_infraction(chat.id, target.id, f"تصفير التحذيرات (كانت {previous})", actor.id)
+        save_moderation_data()
+        await msg.reply_text(f"🔓 تم تصفير تحذيرات {target.full_name}. (كانت {previous})")
+        return
+    if phrase == "تحذيراته":
+        count = WARNINGS.get((chat.id, target.id), 0)
+        await msg.reply_text(f"⚠️ تحذيرات {target.full_name}: {count}/5")
+        return
+    entries = MODERATION_LOG.get(f"{chat.id}:{target.id}", [])
+    if not entries:
+        await msg.reply_text(f"📋 ماكو مخالفات مسجلة لـ {target.full_name}.")
+        return
+    lines = [f"📋 سجل مخالفات {target.full_name} (آخر {min(10, len(entries))}):"]
+    lines.extend(f"• {entry.get('time', '?')} — {entry.get('reason', 'مخالفة')}" for entry in entries[-10:])
+    await msg.reply_text("\n".join(lines))
+
+
 async def warn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await admin_only(update, context):
         return
@@ -1349,7 +1422,7 @@ def main() -> None:
     register_games_handlers(app)
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
     app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.Regex(r"(?i)^اهمس$"), whisper_text_command))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND & filters.Regex(r"(?i)^(تحذير|تحذيراته|سجل مخالفاته|تصفير تحذيراته)$"), natural_moderation_commands))\n    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
     app.add_error_handler(on_error)
     log.info("Starting Mehni Guard")
