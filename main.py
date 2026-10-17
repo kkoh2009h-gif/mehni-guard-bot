@@ -86,7 +86,7 @@ async def dhikr_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     DHIKR_CHATS[update.effective_chat.id] = True
     save_dhikr_chats()
-    await update.effective_message.reply_text("✅ تم تفعيل التذكير الديني لهذا الكروب. راح أرسل ذكر أو استغفار أو حديث كل ساعة تقريباً. لإيقافه اكتب /adhkar_off")
+    await update.effective_message.reply_text("✅ تم تفعيل التذكير الديني لهذا الكروب. راح أرسل ذكر أو استغفار أو حديث كل 15 دقيقة تقريباً. لإيقافه اكتب /adhkar_off")
 
 async def dhikr_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await admin_only(update, context):
@@ -1064,7 +1064,7 @@ def main() -> None:
     app = Application.builder().token(TOKEN).post_init(configure_bot_menu).build()
     load_dhikr_chats()
     if app.job_queue:
-        app.job_queue.run_repeating(send_periodic_dhikr, interval=60 * 60, first=60, name="periodic_dhikr")
+        app.job_queue.run_repeating(send_periodic_dhikr, interval=15 * 60, first=60, name="periodic_dhikr")
     else:
         log.error("JobQueue unavailable; install python-telegram-bot[job-queue]")
     app.add_handler(MessageHandler(filters.ChatType.GROUPS, remember_group), group=-2)
