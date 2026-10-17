@@ -212,9 +212,16 @@ async def show_whisper_callback(update: Update, context: ContextTypes.DEFAULT_TY
         await query.answer("هاي الهمسة مخصصة لشخص ثاني 🤫", show_alert=True)
         return
     try:
+        report_keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(
+                "🚩 إبلاغ للمشرفين",
+                callback_data=f"whisper_report:{payload['group_id']}:{payload['sender_id']}",
+            )
+        ]])
         await context.bot.send_message(
             chat_id=payload["target_id"],
             text="🤫 همسة سرية وصلتك عبر حارس المهني:\n\n" + payload["text"],
+            reply_markup=report_keyboard,
         )
         context.bot_data["pending_group_whispers"].pop(token, None)
         await query.answer("وصلتك الهمسة بالخاص 🤫", show_alert=True)
