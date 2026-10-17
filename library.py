@@ -59,9 +59,18 @@ def home_keyboard():
         if i + 1 < len(DEPARTMENTS):
             row.append(InlineKeyboardButton("📚 " + DEPARTMENTS[i + 1], callback_data=f"library:dept:{i+1}"))
         rows.append(row)
-    rows.append([InlineKeyboardButton("🔄 تحديث المكتبة", callback_data="library:home")])
+    rows.extend([
+        [InlineKeyboardButton("🏭 كتب الفرع الصناعي", url="https://vocational.edu.iq/الفرع-الصناعي/")],
+        [InlineKeyboardButton("🌾 كتب الفرع الزراعي", url="https://vocational.edu.iq/الفرع-الزراعي/")],
+        [InlineKeyboardButton("💼 كتب التجاري - الإدارة", url="https://vocational.edu.iq/الادارة/"),
+         InlineKeyboardButton("🧾 كتب التجاري - المحاسبة", url="https://vocational.edu.iq/المحاسبة/")],
+        [InlineKeyboardButton("🏨 السياحة والفندقة", url="https://vocational.edu.iq/فرع-السياحة-والفندقة/")],
+        [InlineKeyboardButton("🎨 الفنون التطبيقية", url="https://vocational.edu.iq/فرع-الفنون-التطبيقية/")],
+        [InlineKeyboardButton("💻 الحاسوب وتقنية المعلومات", url="https://vocational.edu.iq/فرع-الحاسوب-وتقنية-المعلومات/")],
+        [InlineKeyboardButton("📄 مكتبة الملازم", url="https://iraqmlzm.com/")],
+        [InlineKeyboardButton("🔄 تحديث المكتبة", callback_data="library:home")],
+    ])
     return InlineKeyboardMarkup(rows)
-
 
 async def library(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     load_books()
