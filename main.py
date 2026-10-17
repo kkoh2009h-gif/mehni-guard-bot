@@ -211,25 +211,14 @@ async def show_whisper_callback(update: Update, context: ContextTypes.DEFAULT_TY
     if query.from_user.id != payload["target_id"]:
         await query.answer("هاي الهمسة مخصصة لشخص ثاني 🤫", show_alert=True)
         return
+    # The popup is visible only to the person who tapped the button.
+    # Telegram limits callback alert text, so whisper messages are capped at 180 characters.
     try:
-        report_keyboard = InlineKeyboardMarkup([[
-            InlineKeyboardButton(
-                "🚩 إبلاغ للمشرفين",
-                callback_data=f"whisper_report:{payload['group_id']}:{payload['sender_id']}",
-            )
-        ]])
-        await context.bot.send_message(
-            chat_id=payload["target_id"],
-            text="🤫 همسة سرية وصلتك عبر حارس المهني:\n\n" + payload["text"],
-            reply_markup=report_keyboard,
-        )
+        await query.answer("🤫 الهمسة:\n" + payload["text"], show_alert=True)
         context.bot_data["pending_group_whispers"].pop(token, None)
-        await query.answer("وصلتك الهمسة بالخاص 🤫", show_alert=True)
     except Exception:
-        await query.answer(
-            "ما گدرت أوصلها بالخاص. افتح البوت واضغط Start، وبعدها جرّب مرة ثانية.",
-            show_alert=True,
-        )
+        log.exception("Could not reveal whisper in callback alert")
+        await query.answer("تعذر إظهار الهمسة. جرّب مرة ثانية.", show_alert=True)
 
 
 async def cancel_whisper(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -249,8 +238,8 @@ async def whisper_private_text(update: Update, context: ContextTypes.DEFAULT_TYP
     if not whisper_text:
         await msg.reply_text("الهمسة لازم تكون نصية. اكتب نصاً أو /cancel للإلغاء.")
         return
-    if len(whisper_text) > 1000:
-        await msg.reply_text("الهمسة طويلة؛ اختصرها إلى 1000 حرف أو أقل.")
+    if len(whisper_text) > 180:
+        await msg.reply_text("حتى تبقى بالكروب وتظهر الهمسة بنافذة خاصة إلك، خليها 180 حرف أو أقل.")
         return
     if whisper_text.startswith("/"):
         await msg.reply_text("حتى ما ينفذ البوت أوامر بالخطأ، اكتب نص الهمسة بدون بداية / أو اكتب /cancel.")
@@ -272,12 +261,12 @@ async def whisper_private_text(update: Update, context: ContextTypes.DEFAULT_TYP
         ]])
         await context.bot.send_message(
             chat_id=pending["group_id"],
-            text="🤫 عندك همسة سرية!\nاضغط «👁️ أظهر الهمسة» حتى تستلمها بالخاص.\n"
-                 "🔒 الزر مخصص للمستلم فقط، وباقي الأعضاء ما يگدرون يشوفون محتوى الهمسة.",
+            text="🤫 عندك همسة سرية!\nاضغط «👁️ أظهر الهمسة» حتى تقراها بنافذة خاصة إلك، وتبقى بالكروب.\n"
+                 "🔒 محتوى الهمسة يظهر للمستلم فقط، والحد الأقصى 180 حرف.",
             reply_markup=keyboard,
         )
         context.user_data.pop("pending_whisper", None)
-        await msg.reply_text("✅ تم إرسال الهمسة للكروب. المستلم وحده يگدر يضغط «أظهر الهمسة».")
+        await msg.reply_text("✅ تم إرسال الهمسة للكروب. المستلم يگدر يقراها بنافذة خاصة بدون ما يطلع من الكروب.")
     except Exception:
         log.exception("Could not post group whisper reveal button")
         await msg.reply_text("تعذر نشر زر الهمسة بالكروب. تأكد أن البوت ما زال موجوداً بالكروب وحاول مرة ثانية.")
