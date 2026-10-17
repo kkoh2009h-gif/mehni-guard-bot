@@ -386,7 +386,25 @@ async def admin_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
 
     action = (query.data or "").split(":", 1)[-1]
-    if action == "links":
+    if action == "open":
+        await query.edit_message_text(
+            "🛡️ قائمة أوامر حارس المهني — للمشرفين فقط",
+            reply_markup=admin_menu_keyboard(chat.id),
+        )
+        return
+    elif action == "help_warn":
+        detail = "⚠️ للتحذير: رد على رسالة العضو واكتب /warn"
+    elif action == "help_mute":
+        detail = "🔇 للكتم: رد على رسالة العضو واكتب /mute"
+    elif action == "help_unmute":
+        detail = "🔊 لفك الكتم: رد على رسالة العضو واكتب /unmute"
+    elif action == "help_ban":
+        detail = "⛔ للحظر: رد على رسالة العضو واكتب /ban"
+    elif action == "help_unban":
+        detail = "🔓 لفك الحظر: اكتب /unban متبوعاً بمعرّف العضو (ID)"
+    elif action == "help_whisper":
+        detail = "🤫 للهمس: رد على رسالة الشخص واكتب اهمس، ثم اتبع الزر"
+    elif action == "links":
         LINK_FILTER[chat.id] = not LINK_FILTER[chat.id]
         status = "مفعّل" if LINK_FILTER[chat.id] else "متوقف"
         detail = f"🔗 منع الروابط صار {status}.\\nمنع الروابط يحذف الرسائل التي تحتوي على روابط من الأعضاء غير المشرفين."
@@ -749,6 +767,23 @@ async def auto_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             context.user_data.pop("await_welcome_chat", None)
             await msg.reply_text("✅ تم تحديث رسالة الترحيب لهذا التشغيل.")
             return
+
+    # Show the transparent inline admin command menu when an admin types "الاوامر".
+    if body in {"الاوامر", "الأوامر", "اوامر"}:
+        if await is_admin(update, context, user.id):
+            await msg.reply_text(
+                "🛡️ قائمة أوامر حارس المهني — للمشرفين فقط",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("🛡️ لوحة التحكم", callback_data="menu:open")],
+                    [InlineKeyboardButton("⚠️ تحذير عضو", callback_data="menu:help_warn"), InlineKeyboardButton("🔇 كتم عضو", callback_data="menu:help_mute")],
+                    [InlineKeyboardButton("🔊 فك الكتم", callback_data="menu:help_unmute"), InlineKeyboardButton("⛔ حظر عضو", callback_data="menu:help_ban")],
+                    [InlineKeyboardButton("🔓 فك الحظر", callback_data="menu:help_unban"), InlineKeyboardButton("📊 الإحصائيات", callback_data="menu:stats")],
+                    [InlineKeyboardButton("🔗 منع الروابط", callback_data="menu:links"), InlineKeyboardButton("🔁 منع التكرار", callback_data="menu:spam")],
+                    [InlineKeyboardButton("👋 تغيير الترحيب", callback_data="menu:welcome"), InlineKeyboardButton("💬 الردود", callback_data="menu:replies")],
+                    [InlineKeyboardButton("📌 القوانين", callback_data="menu:rules"), InlineKeyboardButton("🤫 طريقة الهمس", callback_data="menu:help_whisper")],
+                ]),
+            )
+        return
 
     # Let group admins create custom automatic replies through a short conversation.
     if body in {"الغاء", "إلغاء", "الغاء الرد", "إلغاء الرد"} and state_key in PENDING_REPLY:
