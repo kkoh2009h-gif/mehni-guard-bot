@@ -1162,7 +1162,9 @@ async def moderate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if LINK_FILTER[chat.id] and URL_RE.search(body):
         try:
             await msg.delete()
-            await context.bot.send_message(chat.id, "🚫 الروابط ممنوعة بهذا الكروب.")
+            add_infraction(chat.id, user.id, "نشر رابط ممنوع", context.bot.id)
+            save_moderation_data()
+            await context.bot.send_message(chat.id, f"🚫 تم حذف رابط نشره {user.full_name} لأن الروابط ممنوعة.")
         except Exception:
             log.exception("Link removal failed; check delete-message permission")
         return
@@ -1177,6 +1179,8 @@ async def moderate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if duplicates >= 4:
         try:
             await msg.delete()
+            add_infraction(chat.id, user.id, "سبام: تكرار الرسالة 4 مرات خلال 20 ثانية", context.bot.id)
+            save_moderation_data()
             if await bot_has_restrict_rights(update, context):
                 await context.bot.restrict_chat_member(
                     chat.id, user.id,
