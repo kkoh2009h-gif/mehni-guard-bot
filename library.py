@@ -32,6 +32,41 @@ def load_books():
         BOOKS = []
 
 
+STARTER_BOOKS = [
+    {
+        "url": "https://vocational.edu.iq/wp-content/uploads/2025/01/%D8%AA%D8%AF%D8%B1%D9%8A%D8%A8-%D8%AB%D8%A7%D9%84%D8%AB-%D8%AA%D9%83%D9%86%D9%84%D9%88%D8%AC%D9%8A%D8%A7-%D8%B5%D9%86%D8%A7%D8%B9%D9%8A%D8%A9-2023_compressed.pdf",
+        "department": "الصناعي", "stage": "الثالث المهني",
+        "subject": "التدريب العملي", "title": "تدريب ثالث - تكنولوجيا صناعية",
+        "file_name": "training-third-industrial.pdf", "source": "المديرية العامة للتعليم المهني",
+    },
+    {
+        "url": "https://vocational.edu.iq/uploads/pdf/industrial/a12/1122aa.pdf",
+        "department": "الصناعي", "stage": "الثالث المهني",
+        "subject": "العلوم الصناعية", "title": "اللحام وتشكيل المعادن",
+        "file_name": "welding-metal-forming.pdf", "source": "المديرية العامة للتعليم المهني",
+    },
+    {
+        "url": "https://vocational.edu.iq/wp-content/uploads/2026/02/2025%D8%B9%D9%85%D9%84%D9%8A-%D8%A7%D9%88%D9%84-%D9%85%D8%B5%D8%A7%D8%B9%D8%AF_compressed-1.pdf",
+        "department": "الميكانيك والسيارات", "stage": "الأول المهني",
+        "subject": "التدريب العملي", "title": "التدريب العملي - صيانة المصاعد الكهربائية",
+        "file_name": "elevator-maintenance-practical.pdf", "source": "المديرية العامة للتعليم المهني",
+    },
+]
+
+
+def seed_starter_books():
+    load_books()
+    existing_urls = {book.get("url") for book in BOOKS if book.get("url")}
+    changed = False
+    for book in STARTER_BOOKS:
+        if book["url"] not in existing_urls:
+            BOOKS.append(book.copy())
+            existing_urls.add(book["url"])
+            changed = True
+    if changed:
+        save_books()
+
+
 def save_books():
     try:
         with open(LIBRARY_FILE, "w", encoding="utf-8") as f:
@@ -209,7 +244,7 @@ async def library_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             return
         await context.bot.send_document(
             chat_id=query.message.chat.id,
-            document=book["file_id"],
+            document=book.get("file_id") or book.get("url"),
             caption=(
                 f"📚 {book.get('title','كتاب')}\n"
                 f"القسم: {book.get('department','')}\n"
@@ -223,7 +258,7 @@ async def library_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 def register_library_handlers(app):
     from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters
-    load_books()
+    seed_starter_books()
     app.add_handler(CommandHandler("library", library))
     app.add_handler(CommandHandler("addbook", addbook))
     app.add_handler(CommandHandler("cancelbook", cancelbook))
