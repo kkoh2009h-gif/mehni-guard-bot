@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from collections import defaultdict, deque
 from datetime import timedelta
 
-from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import BotCommand, ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, MenuButtonCommands, Update
 from telegram.constants import ChatMemberStatus
 from library import register_library_handlers
 from games import register_games_handlers
@@ -900,9 +900,41 @@ def start_health_server() -> None:
     log.info("Health server listening on port %s", port)
 
 
+async def configure_bot_menu(app: Application) -> None:
+    """Publish the command list and make Telegram's menu button open it."""
+    commands = [
+        BotCommand("start", "بدء تشغيل حارس المهني"),
+        BotCommand("help", "عرض المساعدة والأوامر"),
+        BotCommand("rules", "عرض قوانين الكروب"),
+        BotCommand("whisper", "إرسال همسة بالرد على رسالة"),
+        BotCommand("cancel", "إلغاء العملية الحالية"),
+        BotCommand("panel", "لوحة تحكم المشرفين"),
+        BotCommand("warn", "تحذير عضو بالرد على رسالته"),
+        BotCommand("warnings", "عرض التحذيرات"),
+        BotCommand("mute", "كتم عضو بالرد على رسالته"),
+        BotCommand("unmute", "فك كتم عضو بالرد على رسالته"),
+        BotCommand("ban", "حظر عضو بالرد على رسالته"),
+        BotCommand("unban", "فك حظر باستخدام ID"),
+        BotCommand("stats", "إحصائيات الكروب"),
+        BotCommand("replies", "عرض الردود التلقائية"),
+        BotCommand("delreply", "حذف رد تلقائي"),
+        BotCommand("links_on", "تفعيل منع الروابط"),
+        BotCommand("links_off", "إيقاف منع الروابط"),
+        BotCommand("spam_on", "تفعيل حماية التكرار"),
+        BotCommand("spam_off", "إيقاف حماية التكرار"),
+        BotCommand("setwelcome", "تغيير رسالة الترحيب"),
+    ]
+    try:
+        await app.bot.set_my_commands(commands)
+        await app.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+        log.info("Telegram command menu configured")
+    except Exception:
+        log.exception("Could not configure Telegram command menu")
+
+
 def main() -> None:
     start_health_server()
-    app = Application.builder().token(TOKEN).build()
+    app = Application.builder().token(TOKEN).post_init(configure_bot_menu).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("whisper", whisper_command))
     app.add_handler(CommandHandler("cancel", cancel_whisper))
