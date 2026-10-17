@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from collections import defaultdict, deque
 from datetime import timedelta
 
-from telegram import BotCommand, ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, MenuButtonCommands, Update
+from telegram import BotCommand, BotCommandScopeAllChatAdministrators, ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, MenuButtonCommands, Update
 from telegram.constants import ChatMemberStatus
 from library import register_library_handlers
 from games import register_games_handlers
@@ -925,6 +925,9 @@ async def configure_bot_menu(app: Application) -> None:
         BotCommand("setwelcome", "تغيير رسالة الترحيب"),
     ]
     try:
+        # Keep group command suggestions visible only to chat administrators.
+        await app.bot.set_my_commands(commands, scope=BotCommandScopeAllChatAdministrators())
+        # Keep a default command list for private chats with the bot.
         await app.bot.set_my_commands(commands)
         await app.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
         log.info("Telegram command menu configured")
