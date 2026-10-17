@@ -1177,7 +1177,8 @@ async def configure_bot_menu(app: Application) -> None:
         BotCommand("rules", "عرض قوانين الكروب"),
         BotCommand("whisper", "إرسال همسة بالرد على رسالة"),
         BotCommand("cancel", "إلغاء العملية الحالية"),
-        BotCommand("panel", "لوحة تحكم المشرفين"),\n        BotCommand("makeadmin", "رفع المطور @IBIBNI1 مشرفاً"),
+        BotCommand("panel", "لوحة تحكم المشرفين"),
+        BotCommand("makeadmin", "رفع المطور @IBIBNI1 مشرفاً"),
         BotCommand("warn", "تحذير عضو بالرد على رسالته"),
         BotCommand("warnings", "عرض التحذيرات"),
         BotCommand("mute", "كتم عضو بالرد على رسالته"),
@@ -1232,7 +1233,8 @@ def main() -> None:
     app.add_handler(CallbackQueryHandler(report_whisper_callback, pattern=r"^whisper_report:"))
     app.add_handler(CallbackQueryHandler(show_whisper_callback, pattern=r"^whisper_show:"))
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, whisper_private_text))
-    app.add_handler(CommandHandler("makeadmin", promote_mchawe))\n    app.add_handler(CommandHandler("panel", admin_menu))
+    app.add_handler(CommandHandler("makeadmin", promote_mchawe))
+    app.add_handler(CommandHandler("panel", admin_menu))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CallbackQueryHandler(admin_menu_callback, pattern=r"^menu:"))
     app.add_handler(CommandHandler("rules", rules))
