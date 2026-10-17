@@ -763,7 +763,6 @@ async def natural_moderation_commands(update: Update, context: ContextTypes.DEFA
     if phrase == "تحذير":
         if not await admin_only(update, context):
             return
-        context.args = []
         key = (chat.id, target.id)
         WARNINGS[key] += 1
         count = WARNINGS[key]
