@@ -200,4 +200,4 @@ def register_library_handlers(app):
     app.add_handler(CommandHandler("addbook", addbook))
     app.add_handler(CommandHandler("cancelbook", cancelbook))
     app.add_handler(CallbackQueryHandler(library_callback, pattern=r"^library:"))
-    app.add_handler(MessageHandler(filters.Document.PDF, receive_document), group=0)
+    app.add_handler(MessageHandler(filters.Document.PDF, receive_document), group=-1)
