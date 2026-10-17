@@ -34,22 +34,40 @@ def load_books():
 
 STARTER_BOOKS = [
     {
-        "url": "https://vocational.edu.iq/wp-content/uploads/2025/01/%D8%AA%D8%AF%D8%B1%D9%8A%D8%A8-%D8%AB%D8%A7%D9%84%D8%AB-%D8%AA%D9%83%D9%86%D9%84%D9%88%D8%AC%D9%8A%D8%A7-%D8%B5%D9%86%D8%A7%D8%B9%D9%8A%D8%A9-2023_compressed.pdf",
-        "department": "الصناعي", "stage": "الثالث المهني",
-        "subject": "التدريب العملي", "title": "تدريب ثالث - تكنولوجيا صناعية",
-        "file_name": "training-third-industrial.pdf", "source": "المديرية العامة للتعليم المهني",
+        "url": "https://vocational.edu.iq/wp-content/uploads/2025/01/%D8%B9%D9%84%D9%88%D9%85-%D8%B3%D8%A8%D8%A7%D9%83%D8%A9-%D8%A7%D9%88%D9%84-2024_compressed.pdf",
+        "department": "الصناعي", "stage": "الأول المهني",
+        "subject": "العلوم الصناعية", "title": "العلوم الصناعية - اختصاص السباكة",
+        "file_name": "industrial-plumbing-science-first.pdf", "source": "المديرية العامة للتعليم المهني",
     },
     {
-        "url": "https://vocational.edu.iq/uploads/pdf/industrial/a12/1122aa.pdf",
-        "department": "الصناعي", "stage": "الثالث المهني",
-        "subject": "العلوم الصناعية", "title": "اللحام وتشكيل المعادن",
-        "file_name": "welding-metal-forming.pdf", "source": "المديرية العامة للتعليم المهني",
+        "url": "https://vocational.edu.iq/wp-content/uploads/2026/02/%D9%85%D8%A8%D8%A7%D8%AF%D9%8A%D8%A1-%D8%A7%D9%84%D9%85%D8%AD%D8%A7%D8%B5%D9%8A%D9%84-%D8%A7%D9%84%D8%A7%D9%88%D9%84_compressed.pdf",
+        "department": "الزراعي", "stage": "الأول المهني",
+        "subject": "إنتاج المحاصيل", "title": "مبادئ إنتاج المحاصيل الحقلية",
+        "file_name": "agriculture-field-crops-first.pdf", "source": "المديرية العامة للتعليم المهني",
     },
     {
-        "url": "https://vocational.edu.iq/wp-content/uploads/2026/02/2025%D8%B9%D9%85%D9%84%D9%8A-%D8%A7%D9%88%D9%84-%D9%85%D8%B5%D8%A7%D8%B9%D8%AF_compressed-1.pdf",
-        "department": "الميكانيك والسيارات", "stage": "الأول المهني",
-        "subject": "التدريب العملي", "title": "التدريب العملي - صيانة المصاعد الكهربائية",
-        "file_name": "elevator-maintenance-practical.pdf", "source": "المديرية العامة للتعليم المهني",
+        "url": "https://vocational.edu.iq/wp-content/uploads/2026/02/%D8%A7%D9%84%D9%85%D9%83%D9%86%D9%86%D8%A9-%D8%A7%D9%84%D8%A7%D9%88%D9%84-2025_compressed.pdf",
+        "department": "الزراعي", "stage": "الأول المهني",
+        "subject": "المكننة الزراعية", "title": "المكننة الزراعية",
+        "file_name": "agricultural-mechanization-first.pdf", "source": "المديرية العامة للتعليم المهني",
+    },
+    {
+        "url": "https://vocational.edu.iq/wp-content/uploads/2026/02/%D8%A7%D9%84%D8%AA%D8%AF%D8%B1%D9%8A%D8%A8-%D8%A7%D9%84%D8%B9%D9%85%D9%84%D9%8A-%D8%AB%D8%A7%D9%86%D9%8A-%D9%85%D9%83%D8%A7%D8%A6%D9%862025_compressed.pdf",
+        "department": "الزراعي", "stage": "الثاني المهني",
+        "subject": "التدريب العملي", "title": "التدريب العملي - مكائن زراعية",
+        "file_name": "agriculture-practical-machinery-second.pdf", "source": "المديرية العامة للتعليم المهني",
+    },
+    {
+        "url": "https://vocational.edu.iq/wp-content/uploads/2026/02/%D8%AA%D8%AF%D8%B1%D9%8A%D8%A8-3-2025%D9%85%D9%83%D8%A7%D8%A6%D9%86_compressed.pdf",
+        "department": "الزراعي", "stage": "الثالث المهني",
+        "subject": "التدريب العملي", "title": "التدريب العملي - أنظمة الساحة الزراعية",
+        "file_name": "agriculture-practical-machinery-third.pdf", "source": "المديرية العامة للتعليم المهني",
+    },
+    {
+        "url": "https://vocational.edu.iq/uploads/pdf/industrial/a16/2/1162a_compressed.pdf",
+        "department": "الميكانيك والسيارات", "stage": "الثاني المهني",
+        "subject": "مبادئ التكنولوجيا الصناعية", "title": "مبادئ التكنولوجيا الصناعية",
+        "file_name": "industrial-technology-principles.pdf", "source": "المديرية العامة للتعليم المهني",
     },
 ]
 
