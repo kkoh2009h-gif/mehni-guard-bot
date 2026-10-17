@@ -42,6 +42,73 @@ LINK_FILTER = defaultdict(lambda: True)
 CUSTOM_REPLIES = defaultdict(dict)  # chat_id -> {trigger: reply}
 PENDING_REPLY = {}  # (chat_id, user_id) -> {"stage": "trigger"|"reply", "trigger": str}
 CUSTOM_REPLIES_FILE = "custom_replies.json"
+DHIKR_FILE = "dhikr_chats.json"
+DHIKR_CHATS = {}  # chat_id -> enabled
+DHIKR_MESSAGES = [
+    "🌿 أستغفر الله العظيم وأتوب إليه.",
+    "🤍 سبحان الله وبحمده، سبحان الله العظيم.",
+    "✨ لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.",
+    "🕊️ اللهم صلِّ وسلم على نبينا محمد.",
+    "🌸 الحمد لله دائماً وأبداً.",
+    "🤲 لا حول ولا قوة إلا بالله.",
+    "💚 سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر.",
+    "📖 قال الله تعالى: «فَاذْكُرُونِي أَذْكُرْكُمْ» [البقرة: 152].",
+    "🌙 تذكير لطيف: أكثروا من الاستغفار، فذكر الله طمأنينة للقلب.",
+    "📜 قال رسول الله ﷺ: «الكلمة الطيبة صدقة» (متفق عليه).",
+    "📜 قال رسول الله ﷺ: «يسروا ولا تعسروا، وبشروا ولا تنفروا» (متفق عليه).",
+]
+
+def load_dhikr_chats() -> None:
+    try:
+        with open(DHIKR_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        DHIKR_CHATS.update({int(chat_id): bool(enabled) for chat_id, enabled in data.items()})
+    except FileNotFoundError:
+        pass
+    except Exception:
+        log.exception("Could not load dhikr settings")
+
+def save_dhikr_chats() -> None:
+    try:
+        with open(DHIKR_FILE, "w", encoding="utf-8") as file:
+            json.dump({str(chat_id): enabled for chat_id, enabled in DHIKR_CHATS.items()}, file, ensure_ascii=False, indent=2)
+    except Exception:
+        log.exception("Could not save dhikr settings")
+
+async def remember_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = update.effective_chat
+    if chat and chat.type in GROUP_TYPES:
+        DHIKR_CHATS.setdefault(chat.id, False)
+        save_dhikr_chats()
+
+async def dhikr_on(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    DHIKR_CHATS[update.effective_chat.id] = True
+    save_dhikr_chats()
+    await update.effective_message.reply_text("✅ تم تفعيل التذكير الديني لهذا الكروب. راح أرسل ذكر أو استغفار أو حديث كل 3 ساعات تقريباً. لإيقافه اكتب /adhkar_off")
+
+async def dhikr_off(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    DHIKR_CHATS[update.effective_chat.id] = False
+    save_dhikr_chats()
+    await update.effective_message.reply_text("⏸️ تم إيقاف التذكير الديني بهذا الكروب.")
+
+async def send_periodic_dhikr(context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not DHIKR_CHATS:
+        return
+    # Rotate through reminders deterministically; avoid random repeated messages.
+    index = context.application.bot_data.get("dhikr_index", 0)
+    message = DHIKR_MESSAGES[index % len(DHIKR_MESSAGES)]
+    context.application.bot_data["dhikr_index"] = index + 1
+    for chat_id, enabled in list(DHIKR_CHATS.items()):
+        if enabled:
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=message)
+            except Exception:
+                log.exception("Could not send dhikr to chat %s", chat_id)
+
 
 
 def load_custom_replies() -> None:
@@ -978,6 +1045,8 @@ async def configure_bot_menu(app: Application) -> None:
         BotCommand("spam_on", "تفعيل حماية التكرار"),
         BotCommand("spam_off", "إيقاف حماية التكرار"),
         BotCommand("setwelcome", "تغيير رسالة الترحيب"),
+        BotCommand("adhkar_on", "تفعيل الأذكار والاستغفار والأحاديث"),
+        BotCommand("adhkar_off", "إيقاف التذكير الديني"),
     ]
     try:
         # Keep group command suggestions visible only to chat administrators.
@@ -993,6 +1062,14 @@ async def configure_bot_menu(app: Application) -> None:
 def main() -> None:
     start_health_server()
     app = Application.builder().token(TOKEN).post_init(configure_bot_menu).build()
+    load_dhikr_chats()
+    if app.job_queue:
+        app.job_queue.run_repeating(send_periodic_dhikr, interval=3 * 60 * 60, first=60, name="periodic_dhikr")
+    else:
+        log.error("JobQueue unavailable; install python-telegram-bot[job-queue]")
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS, remember_group), group=-2)
+    app.add_handler(CommandHandler("adhkar_on", dhikr_on))
+    app.add_handler(CommandHandler("adhkar_off", dhikr_off))
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("whisper", whisper_command))
     app.add_handler(CommandHandler("cancel", cancel_whisper))
