@@ -35,6 +35,42 @@ if not TOKEN:
 
 # This starter version keeps counters in memory; they reset when the bot restarts.
 WARNINGS = defaultdict(int)  # (chat_id, user_id) -> count
+MODERATION_FILE = "moderation_data.json"
+MODERATION_LOG = defaultdict(list)
+
+def load_moderation_data() -> None:
+    try:
+        with open(MODERATION_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        for key, count in data.get("warnings", {}).items():
+            chat_id, user_id = key.split(":", 1)
+            WARNINGS[(int(chat_id), int(user_id))] = int(count)
+        for key, entries in data.get("log", {}).items():
+            MODERATION_LOG[key] = entries[-100:]
+    except FileNotFoundError:
+        pass
+    except Exception:
+        log.exception("Could not load moderation data")
+
+def save_moderation_data() -> None:
+    try:
+        data = {
+            "warnings": {f"{chat_id}:{user_id}": count for (chat_id, user_id), count in WARNINGS.items()},
+            "log": dict(MODERATION_LOG),
+        }
+        with open(MODERATION_FILE, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+    except Exception:
+        log.exception("Could not save moderation data")
+
+def add_infraction(chat_id: int, user_id: int, reason: str, actor_id: int) -> None:
+    entries = MODERATION_LOG[f"{chat_id}:{user_id}"]
+    entries.append({
+        "time": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
+        "reason": reason[:250],
+        "actor_id": actor_id,
+    })
+    del entries[:-100]
 RECENT = defaultdict(lambda: deque(maxlen=10))  # (chat_id, user_id) -> [(time, text)]
 SPAM_FILTER = defaultdict(lambda: True)
 WELCOME_TEXT = defaultdict(lambda: "🎉 هلا وغلا {name}، نورت كروب المهني!\\n\\n🛡️ نتمنى إلك وقت ممتع ويانه.\\n📌 اقرا قوانين الكروب بكتابة /rules\\n🤝 حياك الله بين أخوانك!")
@@ -720,23 +756,37 @@ async def warn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     key = (update.effective_chat.id, target.id)
     WARNINGS[key] += 1
     count = WARNINGS[key]
-    reply = f"⚠️ تم تحذير {target.full_name} ({count}/3)."
-    if count >= 3:
+    add_infraction(update.effective_chat.id, target.id, "تحذير من المشرف", update.effective_user.id)
+    save_moderation_data()
+    reply = f"⚠️ تحذير {target.full_name}: {count}/5."
+    if count == 3:
         try:
             if not await bot_has_restrict_rights(update, context):
-                reply += "\nوصل إلى 3 تحذيرات، لكن البوت لا يملك صلاحية التقييد."
+                reply += "\nوصل إلى 3 تحذيرات، لكن البوت لا يملك صلاحية الكتم."
             else:
                 await context.bot.restrict_chat_member(
-                    update.effective_chat.id,
-                    target.id,
+                    update.effective_chat.id, target.id,
                     ChatPermissions(can_send_messages=False),
                     until_date=timedelta(minutes=10),
                 )
-                WARNINGS[key] = 0
-                reply += "\nتم كتمه 10 دقائق وتصفير التحذيرات."
+                add_infraction(update.effective_chat.id, target.id, "كتم تلقائي 10 دقائق عند التحذير الثالث", context.bot.id)
+                save_moderation_data()
+                reply += "\n🔇 تم كتمه 10 دقائق. التحذيرات باقية حتى لا يتهرب من العقوبة."
         except Exception:
             log.exception("Auto-mute failed")
-            reply += "\nتعذر الكتم؛ تحقق من صلاحيات البوت."
+            reply += "\nتعذر الكتم؛ تحقق من صلاحيات البوت ورتبة العضو."
+    elif count >= 5:
+        try:
+            if not await bot_has_restrict_rights(update, context):
+                reply += "\nوصل إلى 5 تحذيرات، لكن البوت لا يملك صلاحية الحظر."
+            else:
+                await context.bot.ban_chat_member(update.effective_chat.id, target.id)
+                add_infraction(update.effective_chat.id, target.id, "حظر تلقائي عند التحذير الخامس", context.bot.id)
+                save_moderation_data()
+                reply += "\n⛔ تم حظره عند التحذير الخامس."
+        except Exception:
+            log.exception("Auto-ban failed")
+            reply += "\nتعذر الحظر؛ تحقق من صلاحيات البوت ورتبة العضو."
     await update.effective_message.reply_text(reply)
 
 
@@ -747,7 +797,38 @@ async def warnings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     target = replied_user(update)
     user = target or update.effective_user
     count = WARNINGS[(update.effective_chat.id, user.id)]
-    await update.effective_message.reply_text(f"تحذيرات {user.full_name}: {count}/3")
+    await update.effective_message.reply_text(f"⚠️ تحذيرات {user.full_name}: {count}/5")
+
+
+async def reset_warnings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    target = replied_user(update)
+    if not target:
+        await update.effective_message.reply_text("رد على رسالة العضو واكتب /resetwarn لتصفير تحذيراته.")
+        return
+    key = (update.effective_chat.id, target.id)
+    previous = WARNINGS.get(key, 0)
+    WARNINGS[key] = 0
+    add_infraction(update.effective_chat.id, target.id, f"تصفير التحذيرات (كانت {previous})", update.effective_user.id)
+    save_moderation_data()
+    await update.effective_message.reply_text(f"🔓 تم تصفير تحذيرات {target.full_name}. (كانت {previous})")
+
+
+async def infractions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not in_group(update):
+        await update.effective_message.reply_text("هذا الأمر داخل الكروب فقط.")
+        return
+    target = replied_user(update)
+    user = target or update.effective_user
+    entries = MODERATION_LOG.get(f"{update.effective_chat.id}:{user.id}", [])
+    if not entries:
+        await update.effective_message.reply_text(f"📋 ماكو مخالفات مسجلة لـ {user.full_name}.")
+        return
+    lines = [f"📋 سجل مخالفات {user.full_name} (آخر {min(10, len(entries))}):"]
+    for entry in entries[-10:]:
+        lines.append(f"• {entry.get('time', '?')} — {entry.get('reason', 'مخالفة')}")
+    await update.effective_message.reply_text("\n".join(lines))
 
 
 async def mute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1183,6 +1264,8 @@ async def configure_bot_menu(app: Application) -> None:
         BotCommand("makeadmin", "رفع المطور @IBIBNI1 مشرفاً"),
         BotCommand("warn", "تحذير عضو بالرد على رسالته"),
         BotCommand("warnings", "عرض التحذيرات"),
+        BotCommand("resetwarn", "تصفير تحذيرات عضو بالرد"),
+        BotCommand("infractions", "عرض سجل مخالفات عضو"),
         BotCommand("mute", "كتم عضو بالرد على رسالته"),
         BotCommand("unmute", "فك كتم عضو بالرد على رسالته"),
         BotCommand("ban", "حظر عضو بالرد على رسالته"),
@@ -1216,6 +1299,7 @@ def main() -> None:
     start_health_server()
     app = Application.builder().token(TOKEN).post_init(configure_bot_menu).build()
     load_complaints()
+    load_moderation_data()
     load_dhikr_chats()
     if app.job_queue:
         app.job_queue.run_repeating(send_periodic_dhikr, interval=15 * 60, first=60, name="periodic_dhikr")
@@ -1242,6 +1326,8 @@ def main() -> None:
     app.add_handler(CommandHandler("rules", rules))
     app.add_handler(CommandHandler("warn", warn))
     app.add_handler(CommandHandler("warnings", warnings))
+    app.add_handler(CommandHandler("resetwarn", reset_warnings))
+    app.add_handler(CommandHandler("infractions", infractions))
     app.add_handler(CommandHandler("mute", mute))
     app.add_handler(CommandHandler("unmute", unmute))
     app.add_handler(CommandHandler("ban", ban))
