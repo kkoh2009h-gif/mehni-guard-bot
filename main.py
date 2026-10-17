@@ -42,6 +42,114 @@ LINK_FILTER = defaultdict(lambda: True)
 CUSTOM_REPLIES = defaultdict(dict)  # chat_id -> {trigger: reply}
 PENDING_REPLY = {}  # (chat_id, user_id) -> {"stage": "trigger"|"reply", "trigger": str}
 CUSTOM_REPLIES_FILE = "custom_replies.json"
+COMPLAINTS_FILE = "complaints.json"
+COMPLAINTS = []
+COMPLAINTS_NEXT_ID = 1
+
+def load_complaints() -> None:
+    global COMPLAINTS, COMPLAINTS_NEXT_ID
+    try:
+        with open(COMPLAINTS_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        COMPLAINTS = data.get("items", [])
+        COMPLAINTS_NEXT_ID = int(data.get("next_id", 1))
+    except FileNotFoundError:
+        pass
+    except Exception:
+        log.exception("Could not load complaints")
+
+def save_complaints() -> None:
+    try:
+        with open(COMPLAINTS_FILE, "w", encoding="utf-8") as file:
+            json.dump({"next_id": COMPLAINTS_NEXT_ID, "items": COMPLAINTS}, file, ensure_ascii=False, indent=2)
+    except Exception:
+        log.exception("Could not save complaints")
+
+async def complaint_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg, chat = update.effective_message, update.effective_chat
+    if not msg or not chat or chat.type != "private":
+        if msg:
+            await msg.reply_text("📨 افتح البوت بالخاص واكتب /complaint حتى ترسل شكوى أو اقتراح.")
+        return
+    context.user_data["awaiting_complaint"] = True
+    await msg.reply_text("📨 صندوق الشكاوى والاقتراحات — حارس المهني\n\nاكتب شكواك أو اقتراحك برسالة وحدة. راح يوصل للمشرفين بالخاص.\nللإلغاء اكتب /cancel_complaint.")
+
+async def complaint_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    context.user_data.pop("awaiting_complaint", None)
+    if update.effective_message:
+        await update.effective_message.reply_text("تم إلغاء إرسال الشكوى.")
+
+async def complaint_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global COMPLAINTS_NEXT_ID
+    msg, chat, user = update.effective_message, update.effective_chat, update.effective_user
+    if not msg or not chat or chat.type != "private" or not user or user.is_bot:
+        return
+    if not context.user_data.get("awaiting_complaint"):
+        return
+    body = (msg.text or "").strip()
+    if not body or body.startswith("/"):
+        await msg.reply_text("اكتب نص الشكوى أو الاقتراح، أو /cancel_complaint للإلغاء.")
+        return
+    if len(body) > 3000:
+        await msg.reply_text("خلي النص أقل من 3000 حرف.")
+        return
+    item_id = COMPLAINTS_NEXT_ID
+    COMPLAINTS_NEXT_ID += 1
+    entry = {"id": item_id, "user_id": user.id, "name": user.full_name, "username": user.username or "", "text": body, "status": "جديدة", "created_at": int(time.time())}
+    COMPLAINTS.append(entry)
+    save_complaints()
+    context.user_data.pop("awaiting_complaint", None)
+    admin_ids = {int(x.strip()) for x in os.getenv("COMPLAINT_ADMIN_IDS", "").split(",") if x.strip().isdigit()}
+    delivered = 0
+    for admin_id in admin_ids:
+        try:
+            keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("✅ تمّت المعالجة", callback_data=f"complaint_done:{item_id}")]])
+            admin_text = f"📨 شكوى/اقتراح جديد #{item_id}\nمن: {user.full_name}\nيوزر: @{user.username or 'بدون يوزر'}\nID: {user.id}\n\n{body}"
+            await context.bot.send_message(chat_id=admin_id, text=admin_text, reply_markup=keyboard)
+            delivered += 1
+        except Exception:
+            log.warning("Could not deliver complaint to admin %s", admin_id, exc_info=True)
+    if delivered:
+        await msg.reply_text(f"✅ استلمت رسالتك وسجلتها برقم #{item_id} ووصلت للمشرفين.")
+    else:
+        await msg.reply_text(f"✅ انحفظت رسالتك برقم #{item_id}، لكن لازم تضبط COMPLAINT_ADMIN_IDS بمعرّفات المشرفين الرقمية في الاستضافة، ويكونون فاتحين البوت بالخاص.")
+
+async def complaint_done_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query or not query.data:
+        return
+    admin_ids = {int(x.strip()) for x in os.getenv("COMPLAINT_ADMIN_IDS", "").split(",") if x.strip().isdigit()}
+    if query.from_user.id not in admin_ids:
+        await query.answer("هذا الزر مخصص للمشرفين المضبوطين بالاستضافة.", show_alert=True)
+        return
+    try:
+        item_id = int(query.data.split(":", 1)[1])
+    except (ValueError, IndexError):
+        await query.answer("رقم الشكوى غير صالح.", show_alert=True)
+        return
+    for item in COMPLAINTS:
+        if item.get("id") == item_id:
+            item["status"] = "مكتملة"
+            save_complaints()
+            await query.answer("تم تحديث الحالة إلى مكتملة.")
+            await query.edit_message_reply_markup(reply_markup=None)
+            return
+    await query.answer("ما لقيت الشكوى.", show_alert=True)
+
+async def complaints_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    entries = [x for x in COMPLAINTS if x.get("status") == "جديدة"]
+    if not entries:
+        await update.effective_message.reply_text("📭 ماكو شكاوى جديدة مسجلة.")
+        return
+    lines = ["📨 الشكاوى والاقتراحات الجديدة:"]
+    for item in entries[-15:]:
+        lines.append(f"#{item['id']} — {item['name']} (ID: {item['user_id']})")
+        lines.append(item["text"][:200])
+        lines.append("—")
+    await update.effective_message.reply_text("\n".join(lines)[:4000])
+
 DHIKR_FILE = "dhikr_chats.json"
 DHIKR_CHATS = {}  # chat_id -> enabled
 DHIKR_MESSAGES = [
@@ -1047,6 +1155,9 @@ async def configure_bot_menu(app: Application) -> None:
         BotCommand("setwelcome", "تغيير رسالة الترحيب"),
         BotCommand("adhkar_on", "تفعيل الأذكار والاستغفار والأحاديث"),
         BotCommand("adhkar_off", "إيقاف التذكير الديني"),
+        BotCommand("complaint", "إرسال شكوى أو اقتراح بالخاص"),
+        BotCommand("cancel_complaint", "إلغاء إرسال الشكوى"),
+        BotCommand("complaints", "عرض الشكاوى الجديدة للمشرفين"),
     ]
     try:
         # Keep group command suggestions visible only to chat administrators.
@@ -1062,12 +1173,18 @@ async def configure_bot_menu(app: Application) -> None:
 def main() -> None:
     start_health_server()
     app = Application.builder().token(TOKEN).post_init(configure_bot_menu).build()
+    load_complaints()
     load_dhikr_chats()
     if app.job_queue:
         app.job_queue.run_repeating(send_periodic_dhikr, interval=15 * 60, first=60, name="periodic_dhikr")
     else:
         log.error("JobQueue unavailable; install python-telegram-bot[job-queue]")
     app.add_handler(MessageHandler(filters.ChatType.GROUPS, remember_group), group=-2)
+    app.add_handler(CommandHandler("complaint", complaint_start))
+    app.add_handler(CommandHandler("cancel_complaint", complaint_cancel))
+    app.add_handler(CommandHandler("complaints", complaints_list))
+    app.add_handler(CallbackQueryHandler(complaint_done_callback, pattern=r"^complaint_done:"))
+    app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, complaint_private_text), group=1)
     app.add_handler(CommandHandler("adhkar_on", dhikr_on))
     app.add_handler(CommandHandler("adhkar_off", dhikr_off))
     app.add_handler(CommandHandler("start", start))
