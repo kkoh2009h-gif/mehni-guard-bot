@@ -1128,7 +1128,7 @@ async def promote_mchawe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             return
         # Grant only rights the bot itself currently has; never grant promote-admin rights.
         rights = {
-            "can_manage_chat": True,
+            "can_manage_chat": bool(getattr(bot_member, "can_manage_chat", False)),
             "can_delete_messages": bool(getattr(bot_member, "can_delete_messages", False)),
             "can_manage_video_chats": bool(getattr(bot_member, "can_manage_video_chats", False)),
             "can_restrict_members": bool(getattr(bot_member, "can_restrict_members", False)),
@@ -1139,11 +1139,13 @@ async def promote_mchawe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             "can_promote_members": False,
         }
         await context.bot.promote_chat_member(chat_id=chat.id, user_id=user.id, **rights)
-        await msg.reply_text("👑 تم رفع @IBIBNI1 مشرفاً بالصلاحيات الإدارية المتاحة المحددة.")
-    except Exception:
+        await msg.reply_text("👑 تم رفع @IBIBNI1 مشرفاً بالصلاحيات التي يقدر البوت يمنحها.")
+    except Exception as exc:
         log.exception("Could not promote the owner account")
         await msg.reply_text(
-            "❌ ما كدرت أرفعك مشرف. تأكد أن البوت يملك صلاحية إضافة مشرفين وأن رتبتك الحالية تسمح بالترقية."
+            "❌ تيليغرام رفض الترقية. السبب: "
+            + str(exc)[:700]
+            + "\n\nتأكد من صلاحية إضافة مشرفين للبوت، وأن رتبة البوت أعلى من الصلاحيات التي يحاول منحها."
         )
 
 
