@@ -122,11 +122,162 @@ def replied_user(update: Update):
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.effective_message.reply_text(
+    msg = update.effective_message
+    if not msg:
+        return
+    # Deep-link whisper: the sender opens the bot privately to compose a message.
+    if context.args and context.args[0].startswith("whisper_"):
+        parts = context.args[0].split("_")
+        if len(parts) == 4:
+            try:
+                target_id, sender_id, group_id = map(int, parts[1:])
+            except ValueError:
+                await msg.reply_text("رابط الهمسة غير صالح. ارجع للكروب وحاول من جديد.")
+                return
+            if update.effective_user and update.effective_user.id != sender_id:
+                await msg.reply_text("هذا الرابط مخصص للشخص اللي طلب الهمسة، مو إلك.")
+                return
+            if target_id == sender_id:
+                await msg.reply_text("ما تگدر ترسل همسة لنفسك 🙂")
+                return
+            context.user_data["pending_whisper"] = {
+                "target_id": target_id, "sender_id": sender_id, "group_id": group_id
+            }
+            await msg.reply_text(
+                "🤫 نظام الهمسات — حارس المهني\n\n"
+                "اكتب الهمسة برسالة نصية وحدة، وراح أوصلها للشخص بدون ما أذكر اسمك. "
+                "لا ترسل معلومات حساسة أو تهديدات. الحد الأقصى 1000 حرف.\n"
+                "للإلغاء اكتب /cancel."
+            )
+            return
+    await msg.reply_text(
         "أهلاً بيك، أني حارس المهني 🛡️\n"
         "بوت حماية وإدارة كروب حماية كروب المهني.\n"
-        "اكتب /help حتى تشوف الأوامر."
+        "اكتب /help حتى تشوف الأوامر.\n"
+        "🤫 لإرسال همسة: رد على رسالة الشخص بالكروب واكتب /whisper."
     )
+
+
+async def whisper_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg, chat, user = update.effective_message, update.effective_chat, update.effective_user
+    if not msg or not chat or not user:
+        return
+    if chat.type not in GROUP_TYPES:
+        await msg.reply_text(
+            "🤫 لإرسال همسة، ارجع للكروب ورد على رسالة الشخص المقصود واكتب /whisper."
+        )
+        return
+    target = replied_user(update)
+    if not target:
+        await msg.reply_text("رد على رسالة الشخص اللي تريد تهمس له، وبعدها اكتب /whisper.")
+        return
+    if target.id == user.id:
+        await msg.reply_text("ما تگدر ترسل همسة لنفسك 🙂")
+        return
+    try:
+        me = await context.bot.get_me()
+        link = f"https://t.me/{me.username}?start=whisper_{target.id}_{user.id}_{chat.id}"
+        keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🤫 اكتب الهمسة بالخاص", url=link)]])
+        await msg.reply_text(
+            f"🤫 همستك إلى {target.first_name} جاهزة. اضغط الزر حتى تكتبها بالخاص.\n"
+            "ملاحظة: توصل الهمسة بدون اسمك، لكن لازم الشخص المستلم يكون فاتح البوت سابقاً حتى يگدر يستلم رسائل خاصة.",
+            reply_markup=keyboard,
+            reply_to_message_id=msg.message_id,
+        )
+    except Exception:
+        log.exception("Could not create whisper link")
+        await msg.reply_text("تعذر إنشاء رابط الهمسة حالياً. حاول بعدين.")
+
+
+async def cancel_whisper(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    context.user_data.pop("pending_whisper", None)
+    if update.effective_message:
+        await update.effective_message.reply_text("تم إلغاء الهمسة.")
+
+
+async def whisper_private_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg, chat, user = update.effective_message, update.effective_chat, update.effective_user
+    if not msg or not chat or chat.type != "private" or not user or user.is_bot:
+        return
+    pending = context.user_data.get("pending_whisper")
+    if not pending:
+        return
+    text = (msg.text or "").strip()
+    if not text:
+        await msg.reply_text("الهمسة لازم تكون نصية. اكتب نصاً أو /cancel للإلغاء.")
+        return
+    if len(text) > 1000:
+        await msg.reply_text("الهمسة طويلة؛ اختصرها إلى 1000 حرف أو أقل.")
+        return
+    if text.startswith("/"):
+        await msg.reply_text("حتى ما ينفذ البوت أوامر بالخطأ، اكتب نص الهمسة بدون بداية / أو اكتب /cancel.")
+        return
+    if user.id != pending["sender_id"]:
+        context.user_data.pop("pending_whisper", None)
+        await msg.reply_text("انتهت صلاحية رابط الهمسة. ارجع للكروب واطلب رابطاً جديداً.")
+        return
+    try:
+        report_keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(
+                "🚩 إبلاغ للمشرفين",
+                callback_data=f"whisper_report:{pending['group_id']}:{user.id}",
+            )
+        ]])
+        await context.bot.send_message(
+            chat_id=pending["target_id"],
+            text="🤫 وصلتك همسة مجهولة عبر حارس المهني:\n\n" + text,
+            reply_markup=report_keyboard,
+        )
+        context.user_data.pop("pending_whisper", None)
+        await msg.reply_text("✅ وصلت الهمسة بنجاح، بدون إظهار اسمك للمستلم.")
+    except Exception:
+        log.info("Whisper delivery failed; recipient may not have started the bot")
+        await msg.reply_text(
+            "ما گدرت أوصل الهمسة. لازم المستلم يفتح @MehniGuardBot ويضغط Start أول مرة، "
+            "وبعدها ترجع تطلب همسة جديدة من الكروب."
+        )
+
+
+async def report_whisper_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query or not query.message or query.message.chat.type != "private":
+        return
+    parts = (query.data or "").split(":")
+    if len(parts) != 3:
+        await query.answer("تعذر قراءة البلاغ.", show_alert=True)
+        return
+    try:
+        group_id, sender_id = int(parts[1]), int(parts[2])
+    except ValueError:
+        await query.answer("بيانات البلاغ غير صالحة.", show_alert=True)
+        return
+    recipient_id = query.from_user.id
+    body = query.message.text or "[همسة غير نصية]"
+    try:
+        admins = await context.bot.get_chat_administrators(group_id)
+    except Exception:
+        await query.answer("تعذر الوصول لمشرفي الكروب.", show_alert=True)
+        return
+    delivered = 0
+    report = (
+        "🚩 بلاغ عن همسة مجهولة\n"
+        f"الكروب: {group_id}\n"
+        f"مرسل الهمسة (للمشرفين فقط): {sender_id}\n"
+        f"المستلم: {recipient_id}\n\n"
+        f"نص الهمسة المبلّغ عنها:\n{body}"
+    )
+    for admin in admins:
+        if getattr(admin, "user", None) and not admin.user.is_bot:
+            try:
+                await context.bot.send_message(admin.user.id, report)
+                delivered += 1
+            except Exception:
+                # Telegram only permits private delivery after an admin has started the bot.
+                continue
+    if delivered:
+        await query.answer("تم إرسال البلاغ للمشرفين اللي فاتحين البوت.", show_alert=True)
+    else:
+        await query.answer("ما وصل البلاغ. لازم أحد المشرفين يفتح البوت بالخاص أولاً.", show_alert=True)
 
 
 async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -259,8 +410,11 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/replies — عرض الردود التلقائية المضافة\n"
         "/delreply كلمة — حذف رد تلقائي (مثال: /delreply شلونكم)\n"
         "اكتب «اضف رد» لإضافة رد جديد\n"
-        "/rules — قوانين الكروب\n\n"
-        "لازم تضيف البوت مشرف وتمنحه الصلاحيات المناسبة."
+        "/rules — قوانين الكروب\n"
+        "/whisper — رد على رسالة عضو واكتب الأمر لإرسال همسة مجهولة\n"
+        "/cancel — إلغاء كتابة الهمسة\n\n"
+        "لازم تضيف البوت مشرف وتمنحه الصلاحيات المناسبة.\n"
+        "ملاحظة: الهمسات نصية فقط، بحد أقصى 1000 حرف، ويمكن للمستلم الإبلاغ عنها للمشرفين."
     )
 
 
@@ -698,6 +852,10 @@ def main() -> None:
     start_health_server()
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("whisper", whisper_command))
+    app.add_handler(CommandHandler("cancel", cancel_whisper))
+    app.add_handler(CallbackQueryHandler(report_whisper_callback, pattern=r"^whisper_report:"))
+    app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, whisper_private_text))
     app.add_handler(CommandHandler("panel", admin_menu))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CallbackQueryHandler(admin_menu_callback, pattern=r"^menu:"))
