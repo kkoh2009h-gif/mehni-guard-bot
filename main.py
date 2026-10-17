@@ -1108,6 +1108,45 @@ async def moderate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             log.exception("Anti-spam action failed; check bot permissions")
 
 
+async def promote_mchawe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Promote only the verified owner account when they request it in a supergroup."""
+    msg = update.effective_message
+    chat = update.effective_chat
+    user = update.effective_user
+    if not msg or not chat or not user:
+        return
+    if chat.type != "supergroup":
+        await msg.reply_text("⚠️ هذا الأمر يشتغل داخل كروب فائق (Supergroup) فقط.")
+        return
+    if (user.username or "").casefold() != "ibibni1":
+        await msg.reply_text("⛔ هذا الأمر مخصص لحساب المطور @IBIBNI1 فقط.")
+        return
+    try:
+        bot_member = await context.bot.get_chat_member(chat.id, context.bot.id)
+        if bot_member.status != ChatMemberStatus.ADMINISTRATOR or not getattr(bot_member, "can_promote_members", False):
+            await msg.reply_text("⚠️ لازم البوت يكون مشرف وعنده صلاحية إضافة مشرفين (Add Administrators).")
+            return
+        await context.bot.promote_chat_member(
+            chat_id=chat.id,
+            user_id=user.id,
+            can_manage_chat=True,
+            can_delete_messages=True,
+            can_manage_video_chats=True,
+            can_restrict_members=True,
+            can_change_info=True,
+            can_invite_users=True,
+            can_pin_messages=True,
+            can_manage_topics=True,
+            can_promote_members=False,
+        )
+        await msg.reply_text("👑 تم رفع @IBIBNI1 مشرفاً بالصلاحيات الإدارية المتاحة المحددة.")
+    except Exception:
+        log.exception("Could not promote the owner account")
+        await msg.reply_text(
+            "❌ ما كدرت أرفعك مشرف. تأكد أن البوت يملك صلاحية إضافة مشرفين وأن رتبتك الحالية تسمح بالترقية."
+        )
+
+
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.error("Unhandled bot error", exc_info=context.error)
 
@@ -1138,7 +1177,7 @@ async def configure_bot_menu(app: Application) -> None:
         BotCommand("rules", "عرض قوانين الكروب"),
         BotCommand("whisper", "إرسال همسة بالرد على رسالة"),
         BotCommand("cancel", "إلغاء العملية الحالية"),
-        BotCommand("panel", "لوحة تحكم المشرفين"),
+        BotCommand("panel", "لوحة تحكم المشرفين"),\n        BotCommand("makeadmin", "رفع المطور @IBIBNI1 مشرفاً"),
         BotCommand("warn", "تحذير عضو بالرد على رسالته"),
         BotCommand("warnings", "عرض التحذيرات"),
         BotCommand("mute", "كتم عضو بالرد على رسالته"),
@@ -1193,7 +1232,7 @@ def main() -> None:
     app.add_handler(CallbackQueryHandler(report_whisper_callback, pattern=r"^whisper_report:"))
     app.add_handler(CallbackQueryHandler(show_whisper_callback, pattern=r"^whisper_show:"))
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, whisper_private_text))
-    app.add_handler(CommandHandler("panel", admin_menu))
+    app.add_handler(CommandHandler("makeadmin", promote_mchawe))\n    app.add_handler(CommandHandler("panel", admin_menu))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CallbackQueryHandler(admin_menu_callback, pattern=r"^menu:"))
     app.add_handler(CommandHandler("rules", rules))
