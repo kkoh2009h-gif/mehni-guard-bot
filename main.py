@@ -8,10 +8,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from collections import defaultdict, deque
 from datetime import timedelta
 
-from telegram import ChatPermissions, Update
+from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatMemberStatus
 from telegram.ext import (
     Application,
+    CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
     MessageHandler,
@@ -139,6 +140,102 @@ async def welcome_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE
         name = member.mention_html()
         welcome = WELCOME_TEXT[chat.id].format(name=name)
         await msg.reply_text(welcome, parse_mode="HTML")
+
+
+def admin_menu_keyboard(chat_id: int) -> InlineKeyboardMarkup:
+    links = LINK_FILTER[chat_id]
+    spam = SPAM_FILTER[chat_id]
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(f"🔗 منع الروابط: {'مفعّل' if links else 'متوقف'}", callback_data="menu:links")],
+        [InlineKeyboardButton(f"🔁 منع التكرار: {'مفعّل' if spam else 'متوقف'}", callback_data="menu:spam")],
+        [InlineKeyboardButton("👋 تغيير الترحيب", callback_data="menu:welcome"),
+         InlineKeyboardButton("📊 الإحصائيات", callback_data="menu:stats")],
+        [InlineKeyboardButton("💬 الردود التلقائية", callback_data="menu:replies"),
+         InlineKeyboardButton("📌 قوانين الكروب", callback_data="menu:rules")],
+        [InlineKeyboardButton("🛠️ شرح أوامر الإدارة", callback_data="menu:commands")],
+    ])
+
+
+async def admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    await update.effective_message.reply_text(
+        "🛡️ لوحة تحكم حارس المهني\\n\\n"
+        "اختار الميزة حتى تشوف شتسوي وتتحكم بيها. هاي الأزرار للمشرفين فقط.",
+        reply_markup=admin_menu_keyboard(update.effective_chat.id),
+    )
+
+
+async def admin_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if not query or not query.message:
+        return
+    await query.answer()
+    chat = query.message.chat
+    user = query.from_user
+    try:
+        member = await context.bot.get_chat_member(chat.id, user.id)
+        if member.status not in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
+            await query.answer("هاي اللوحة للمشرفين فقط 🛡️", show_alert=True)
+            return
+    except Exception:
+        await query.answer("ما گدرت أتأكد من صلاحياتك.", show_alert=True)
+        return
+
+    action = (query.data or "").split(":", 1)[-1]
+    if action == "links":
+        LINK_FILTER[chat.id] = not LINK_FILTER[chat.id]
+        status = "مفعّل" if LINK_FILTER[chat.id] else "متوقف"
+        detail = f"🔗 منع الروابط صار {status}.\\nمنع الروابط يحذف الرسائل التي تحتوي على روابط من الأعضاء غير المشرفين."
+    elif action == "spam":
+        SPAM_FILTER[chat.id] = not SPAM_FILTER[chat.id]
+        status = "مفعّل" if SPAM_FILTER[chat.id] else "متوقف"
+        detail = f"🔁 منع التكرار صار {status}.\\nإذا العضو كرر نفس الرسالة 4 مرات خلال 20 ثانية، يحذف البوت الرسالة ويحاول يكتمه دقيقتين."
+    elif action == "stats":
+        warning_count = sum(count for (cid, _), count in WARNINGS.items() if cid == chat.id)
+        detail = (
+            "📊 إحصائيات الكروب\\n"
+            f"🔗 منع الروابط: {'مفعّل' if LINK_FILTER[chat.id] else 'متوقف'}\\n"
+            f"🔁 منع التكرار: {'مفعّل' if SPAM_FILTER[chat.id] else 'متوقف'}\\n"
+            f"⚠️ التحذيرات الحالية: {warning_count}\\n"
+            f"💬 الردود التلقائية: {len(CUSTOM_REPLIES.get(chat.id, {}))}"
+        )
+    elif action == "welcome":
+        context.user_data["await_welcome_chat"] = chat.id
+        detail = "✍️ اكتب رسالة الترحيب الجديدة برسالة منفصلة. استخدم {name} حتى يظهر اسم العضو.\\nمثال: هلا {name} نورت كروبنا!\\nللإلغاء اكتب إلغاء."
+    elif action == "replies":
+        replies = CUSTOM_REPLIES.get(chat.id, {})
+        detail = "💬 الردود التلقائية:\\n" + ("\\n".join(f"• {key} ← {value[:100]}" for key, value in sorted(replies.items())) if replies else "ماكو ردود مضافة بعد.")
+        detail += "\\n\\nللإضافة اكتب «اضف رد»، وللحذف استخدم /delreply الكلمة"
+    elif action == "rules":
+        detail = "📌 قوانين الكروب\\n1. الاحترام المتبادل.\\n2. ممنوع السبام وتكرار الرسائل.\\n3. الروابط حسب إعدادات الإدارة.\\n4. الالتزام بتوجيهات المشرفين."
+    elif action == "commands":
+        detail = (
+            "🛠️ أوامر الإدارة وشنو تسوي:\\n"
+            "/warn — تحذير عضو (رد على رسالته)؛ 3 تحذيرات تحاول تكتمه 10 دقائق.\\n"
+            "/warnings — عرض تحذيراتك أو تحذيرات العضو بالرد عليه.\\n"
+            "/mute 10 — كتم العضو 10 دقائق (رد على رسالته).\\n"
+            "/unmute — فك الكتم (رد على رسالته).\\n"
+            "/ban — حظر عضو (رد على رسالته).\\n"
+            "/unban USER_ID — فك الحظر.\\n"
+            "/links_on و /links_off — تشغيل/إيقاف منع الروابط.\\n"
+            "/spam_on و /spam_off — تشغيل/إيقاف منع التكرار.\\n"
+            "/setwelcome نص — تغيير الترحيب.\\n"
+            "/replies و /delreply كلمة — إدارة الردود.\\n"
+            "/stats — الإحصائيات."
+        )
+    else:
+        detail = "ما تعرفت على هذا الخيار."
+    try:
+        await query.edit_message_text(
+            "🛡️ لوحة تحكم حارس المهني\\n\\n" + detail,
+            reply_markup=admin_menu_keyboard(chat.id),
+        )
+    except Exception:
+        await query.message.reply_text(
+            "🛡️ لوحة تحكم حارس المهني\\n\\n" + detail,
+            reply_markup=admin_menu_keyboard(chat.id),
+        )
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -579,7 +676,9 @@ def main() -> None:
     start_health_server()
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("panel", admin_menu))
     app.add_handler(CommandHandler("help", help_cmd))
+    app.add_handler(CallbackQueryHandler(admin_menu_callback, pattern=r"^menu:"))
     app.add_handler(CommandHandler("rules", rules))
     app.add_handler(CommandHandler("warn", warn))
     app.add_handler(CommandHandler("warnings", warnings))
