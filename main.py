@@ -1126,19 +1126,19 @@ async def promote_mchawe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if bot_member.status != ChatMemberStatus.ADMINISTRATOR or not getattr(bot_member, "can_promote_members", False):
             await msg.reply_text("⚠️ لازم البوت يكون مشرف وعنده صلاحية إضافة مشرفين (Add Administrators).")
             return
-        await context.bot.promote_chat_member(
-            chat_id=chat.id,
-            user_id=user.id,
-            can_manage_chat=True,
-            can_delete_messages=True,
-            can_manage_video_chats=True,
-            can_restrict_members=True,
-            can_change_info=True,
-            can_invite_users=True,
-            can_pin_messages=True,
-            can_manage_topics=True,
-            can_promote_members=False,
-        )
+        # Grant only rights the bot itself currently has; never grant promote-admin rights.
+        rights = {
+            "can_manage_chat": True,
+            "can_delete_messages": bool(getattr(bot_member, "can_delete_messages", False)),
+            "can_manage_video_chats": bool(getattr(bot_member, "can_manage_video_chats", False)),
+            "can_restrict_members": bool(getattr(bot_member, "can_restrict_members", False)),
+            "can_change_info": bool(getattr(bot_member, "can_change_info", False)),
+            "can_invite_users": bool(getattr(bot_member, "can_invite_users", False)),
+            "can_pin_messages": bool(getattr(bot_member, "can_pin_messages", False)),
+            "can_manage_topics": bool(getattr(bot_member, "can_manage_topics", False)),
+            "can_promote_members": False,
+        }
+        await context.bot.promote_chat_member(chat_id=chat.id, user_id=user.id, **rights)
         await msg.reply_text("👑 تم رفع @IBIBNI1 مشرفاً بالصلاحيات الإدارية المتاحة المحددة.")
     except Exception:
         log.exception("Could not promote the owner account")
