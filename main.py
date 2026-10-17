@@ -156,9 +156,49 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/unban USER_ID — فك الحظر\n"
         "/links_on — منع الروابط\n"
         "/links_off — السماح بالروابط\n"
+        "/replies — عرض الردود التلقائية المضافة\n"
+        "/delreply كلمة — حذف رد تلقائي (مثال: /delreply شلونكم)\n"
+        "اكتب «اضف رد» لإضافة رد جديد\n"
         "/rules — قوانين الكروب\n\n"
         "لازم تضيف البوت مشرف وتمنحه الصلاحيات المناسبة."
     )
+
+
+async def list_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    replies = CUSTOM_REPLIES.get(update.effective_chat.id, {})
+    if not replies:
+        await update.effective_message.reply_text(
+            "ماكو ردود مخصصة حالياً. أضف أول رد بكتابة «اضف رد»."
+        )
+        return
+    lines = ["📋 الردود التلقائية بهذا الكروب:"]
+    for index, (trigger, reply) in enumerate(sorted(replies.items()), start=1):
+        short_reply = reply if len(reply) <= 180 else reply[:177] + "..."
+        lines.append(f"\n{index}. إذا كتبوا: {trigger}\n↳ الرد: {short_reply}")
+    await update.effective_message.reply_text("\n".join(lines))
+
+
+async def delete_reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await admin_only(update, context):
+        return
+    trigger = " ".join(context.args).strip().lower()
+    if not trigger:
+        await update.effective_message.reply_text(
+            "اكتب الكلمة بعد الأمر، مثال:\n/delreply شلونكم\n"
+            "ولعرض الردود الحالية استخدم /replies"
+        )
+        return
+    replies = CUSTOM_REPLIES.get(update.effective_chat.id, {})
+    if trigger not in replies:
+        await update.effective_message.reply_text(
+            "ما لكيت رد محفوظ بهالكلمة. استخدم /replies حتى تشوف الكلمات المسجلة."
+        )
+        return
+    del replies[trigger]
+    save_custom_replies()
+    await update.effective_message.reply_text(f"🗑️ تم حذف الرد المرتبط بـ: {trigger}")
 
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -500,6 +540,8 @@ def main() -> None:
     app.add_handler(CommandHandler("unban", unban))
     app.add_handler(CommandHandler("links_on", links_on))
     app.add_handler(CommandHandler("links_off", links_off))
+    app.add_handler(CommandHandler("replies", list_replies))
+    app.add_handler(CommandHandler("delreply", delete_reply))
     load_custom_replies()
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
