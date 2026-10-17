@@ -748,6 +748,26 @@ async def auto_replies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     body = (msg.text or "").strip().lower()
     state_key = (chat.id, user.id)
 
+    # Developer signature: respond when members ask who built the bot.
+    developer_questions = {
+        "من المطور", "منو المطور", "من مطور البوت", "منو مطور البوت",
+        "مطور البوت", "من صنع البوت", "منو صنع البوت", "من برمج البوت",
+        "منو برمج البوت", "من صاحب البوت", "منو صاحب البوت", "من المبرمج",
+        "منو المبرمج", "مين المطور", "مين مطور البوت",
+    }
+    if body.strip("؟?!،. ") in developer_questions:
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton("👨‍💻 حساب المهندس مچاوي", url="https://t.me/mchaweXx")
+        ]])
+        await msg.reply_text(
+            "👨‍💻 مطوّر حارس المهني\\n\\n"
+            "المهندس مچاوي\\n"
+            "📱 Telegram: @mchaweXx\\n"
+            "✨ بصمة مچاوي — تطوير وبرمجة البوت",
+            reply_markup=keyboard,
+        )
+        return
+
     # The welcome editor button asks the admin for a new welcome message.
     if context.user_data.get("await_welcome_chat") == chat.id:
         if not await is_admin(update, context, user.id):
