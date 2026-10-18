@@ -1510,9 +1510,12 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
     app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.Regex(r"(?i)^اهمس$"), whisper_text_command))
     app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND & filters.Regex(r"(?i)^(تحذير|تحذيراته|سجل مخالفاته|تصفير تحذيراته)$"), natural_moderation_commands))
-    app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND, student_assistant))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
-    app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
+    # Keep each catch-all text handler in its own group: python-telegram-bot
+    # runs only the first matching handler per group. This lets auto-replies,
+    # the student assistant, and moderation all process the same group message.
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies), group=0)
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND, student_assistant), group=1)
+    app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate), group=2)
     app.add_error_handler(on_error)
     log.info("Starting Mehni Guard")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
