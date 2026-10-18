@@ -5,8 +5,8 @@ import re
 import time
 from pathlib import Path
 
-from telegram import Update
-from telegram.ext import ContextTypes, MessageHandler, filters
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackQueryHandler, ContextTypes, MessageHandler, filters
 
 log = logging.getLogger("mehni-guard.games")
 DATA_FILE = Path("games_data.json")
@@ -265,6 +265,165 @@ MENU = (
     "—————————————\n⌔︙نقاطي — عرض نقاطك\n⌔︙بيع نقاطي + العدد — استبدال كل نقطة بـ50 رسالة نشاط محتسبة من البوت."
 )
 
+
+MILLION_QUESTIONS = [
+    ("ما عاصمة العراق؟", ["الموصل", "بغداد", "البصرة", "أربيل"], 1),
+    ("ما لون علم الأمم المتحدة؟", ["أحمر", "أخضر", "أزرق فاتح", "أبيض"], 2),
+    ("كم دقيقة في الساعة؟", ["30", "45", "60", "100"], 2),
+    ("ما الكوكب المعروف بالكوكب الأحمر؟", ["الزهرة", "المريخ", "المشتري", "عطارد"], 1),
+    ("ما أكبر محيط في العالم؟", ["الأطلسي", "الهندي", "المتجمد", "الهادئ"], 3),
+    ("كم عدد أضلاع المربع؟", ["3", "4", "5", "6"], 1),
+    ("ما عاصمة اليابان؟", ["بكين", "طوكيو", "سيول", "بانكوك"], 1),
+    ("أي عضو يضخ الدم في الجسم؟", ["الرئة", "الكبد", "القلب", "المعدة"], 2),
+    ("ما الغاز الذي تمتصه النباتات؟", ["الأوكسجين", "ثاني أكسيد الكربون", "النيتروجين", "الهيدروجين"], 1),
+    ("كم عدد ألوان قوس قزح التقليدية؟", ["5", "6", "7", "8"], 2),
+    ("من رسم لوحة الموناليزا؟", ["بيكاسو", "فان غوخ", "ليوناردو دافنشي", "مونيه"], 2),
+    ("ما أسرع حيوان بري؟", ["الأسد", "الفهد", "الحصان", "الغزال"], 1),
+    ("في أي قارة تقع البرازيل؟", ["آسيا", "أفريقيا", "أمريكا الجنوبية", "أوروبا"], 2),
+    ("ما ناتج 12 × 12؟", ["124", "144", "132", "154"], 1),
+    ("ما العنصر الكيميائي الذي رمزه O؟", ["الذهب", "الأوكسجين", "الفضة", "الهيدروجين"], 1),
+]
+MILLION_PRIZES = ["1,000", "2,000", "5,000", "10,000", "25,000", "50,000", "100,000", "250,000", "500,000", "1,000,000"]
+MILLION_COLORS = ["🟥 أحمر", "🟩 أخضر", "🟦 أزرق فاتح", "⬜ أبيض"]
+MILLION_COLOR_MAP = [0, 1, 2, 3]
+
+async def million_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg, chat, user = update.effective_message, update.effective_chat, update.effective_user
+    if not msg or not chat or not user or chat.type not in ("group", "supergroup"):
+        return
+    key = _key(chat.id, user.id)
+    DATA["pending"][key] = {"game": "المليون", "level": 0, "prize": 0, "safe": 0, "used_5050": False, "used_change": False}
+    save_data()
+    await _million_send_question(context, chat.id, user.id, user.first_name)
+
+async def _million_send_question(context, chat_id, user_id, name=None, edit_query=None):
+    key = _key(chat_id, user_id)
+    state = DATA["pending"].get(key)
+    if not state or state.get("game") != "المليون":
+        return
+    level = state["level"]
+    question, options, answer = MILLION_QUESTIONS[level]
+    prize = MILLION_PRIZES[min(level, len(MILLION_PRIZES)-1)]
+    rows = []
+    for i in range(0, 4, 2):
+        rows.append([
+            InlineKeyboardButton(f"{chr(65+i)} — {options[i]}", callback_data=f"million:{user_id}:{i}"),
+            InlineKeyboardButton(f"{chr(65+i+1)} — {options[i+1]}", callback_data=f"million:{user_id}:{i+1}"),
+        ])
+    helpers = []
+    if not state.get("used_5050"):
+        helpers.append(InlineKeyboardButton("🌓 حذف إجابتين", callback_data=f"million5050:{user_id}"))
+    if not state.get("used_change"):
+        helpers.append(InlineKeyboardButton("🔄 تغيير السؤال", callback_data=f"millionchange:{user_id}"))
+    if helpers:
+        rows.append(helpers)
+    rows.append([InlineKeyboardButton("🏳️ انسحاب واستلام الجائزة", callback_data=f"millionstop:{user_id}")])
+    text = (f"🎮 من سيربح المليون؟\n👤 اللاعب: {name or 'المشارك'}\n"
+            f"🏆 السؤال {level+1} من {len(MILLION_QUESTIONS)}\n💰 الجائزة: {prize}\n\n📝 {question}")
+    keyboard = InlineKeyboardMarkup(rows)
+    if edit_query:
+        await edit_query.edit_message_text(text, reply_markup=keyboard)
+    else:
+        await context.bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard)
+
+async def million_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if not query or not query.data or not query.message:
+        return
+    try:
+        action, owner_str, *rest = query.data.split(":")
+        owner_id = int(owner_str)
+        if query.from_user.id != owner_id:
+            await query.answer("هاي اللعبة مو إلك، خلي اللاعب يجاوب 🙂", show_alert=True)
+            return
+        chat_id = query.message.chat.id
+        key = _key(chat_id, owner_id)
+        state = DATA["pending"].get(key)
+        if not state or state.get("game") != "المليون":
+            await query.answer("اللعبة انتهت. اكتب «المليون» حتى تبدأ من جديد.", show_alert=True)
+            return
+        if action == "millionstop":
+            prize = state.get("prize", 0)
+            DATA["pending"].pop(key, None)
+            save_data()
+            await query.edit_message_text(f"🏁 انسحبت من اللعبة!\n💰 جائزتك: {prize:,} نقطة" if prize else "🏁 انسحبت قبل ربح أي جائزة.")
+            await query.answer()
+            return
+        if action == "million5050":
+            if state.get("used_5050"):
+                await query.answer("استخدمت وسيلة المساعدة هاي من قبل.", show_alert=True)
+                return
+            state["used_5050"] = True
+            level = state["level"]
+            question, options, answer = MILLION_QUESTIONS[level]
+            wrong = [i for i in range(4) if i != answer]
+            random.shuffle(wrong)
+            removed = set(wrong[:2])
+            rows = []
+            for i in range(0, 4, 2):
+                row = []
+                for j in (i, i+1):
+                    row.append(InlineKeyboardButton("❌ —" if j in removed else f"{chr(65+j)} — {options[j]}", callback_data=f"million:{owner_id}:{j}" if j not in removed else f"millionnoop:{owner_id}"))
+                rows.append(row)
+            if not state.get("used_change"):
+                rows.append([InlineKeyboardButton("🔄 تغيير السؤال", callback_data=f"millionchange:{owner_id}")])
+            rows.append([InlineKeyboardButton("🏳️ انسحاب واستلام الجائزة", callback_data=f"millionstop:{owner_id}")])
+            await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(rows))
+            await query.answer("بقت إجابتين!")
+            return
+        if action == "millionnoop":
+            await query.answer("هاي الإجابة مستبعدة بالمساعدة.", show_alert=True)
+            return
+        if action == "millionchange":
+            if state.get("used_change"):
+                await query.answer("استخدمت تغيير السؤال من قبل.", show_alert=True)
+                return
+            state["used_change"] = True
+            # Switch to a random unused question while keeping the current level's prize.
+            current = state["level"]
+            candidates = [i for i in range(len(MILLION_QUESTIONS)) if i != current]
+            replacement = random.choice(candidates)
+            MILLION_QUESTIONS[current], MILLION_QUESTIONS[replacement] = MILLION_QUESTIONS[replacement], MILLION_QUESTIONS[current]
+            save_data()
+            await _million_send_question(context, chat_id, owner_id, query.from_user.first_name, query)
+            await query.answer("تم تغيير السؤال!")
+            return
+        if action != "million":
+            await query.answer()
+            return
+        choice = int(rest[0])
+        level = state["level"]
+        question, options, answer = MILLION_QUESTIONS[level]
+        if choice != answer:
+            prize = state.get("safe", 0)
+            DATA["pending"].pop(key, None)
+            save_data()
+            await query.edit_message_text(f"❌ إجابة غير صحيحة.\nالإجابة الصحيحة: {options[answer]}\n\n🏁 انتهت اللعبة! جائزتك المحفوظة: {prize:,} نقطة")
+            await query.answer("إجابة خاطئة")
+            return
+        state["level"] += 1
+        state["prize"] = (level + 1) * 1000
+        if state["level"] in (5, 10):
+            state["safe"] = state["prize"]
+        _award(chat_id, owner_id, 1)
+        if state["level"] >= len(MILLION_QUESTIONS):
+            final_prize = state["prize"]
+            DATA["pending"].pop(key, None)
+            save_data()
+            await query.edit_message_text(f"🏆 مبروك! فزت بلقب مليونير حارس المهني!\n💰 جائزتك: {final_prize:,} نقطة\n⭐ أضفت لك نقطة إلى رصيدك.")
+            await query.answer("فزت بالمليون!")
+        else:
+            save_data()
+            await _million_send_question(context, chat_id, owner_id, query.from_user.first_name, query)
+            await query.answer("إجابة صحيحة! 🎉")
+    except Exception:
+        log.exception("Millionaire game callback failed")
+        try:
+            await query.answer("صار خطأ بسيط باللعبة، حاول تبدأ من جديد.", show_alert=True)
+        except Exception:
+            pass
+
+
 def load_data():
     global DATA
     try:
@@ -328,6 +487,9 @@ async def handle_games(update: Update, context: ContextTypes.DEFAULT_TYPE):
     normalized = _norm(raw)
     if normalized in {"الالعاب", "الالعاب", "قائمة الالعاب", "قائمه الالعاب", "العاب"}:
         await msg.reply_text(MENU)
+        return
+    if normalized == "المليون":
+        await million_start(update, context)
         return
     if normalized == "نقاطي":
         pts = int(DATA["points"].get(_key(chat.id, user.id), 0))
@@ -414,4 +576,5 @@ async def handle_games(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def register_games_handlers(app):
     load_data()
+    app.add_handler(CallbackQueryHandler(million_callback, pattern=r"^million"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_games), group=-1)
