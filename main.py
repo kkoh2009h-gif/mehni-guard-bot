@@ -1,4 +1,7 @@
 import logging
+import asyncio
+import urllib.request
+import urllib.error
 import json
 import os
 import re
@@ -1306,6 +1309,91 @@ async def promote_mchawe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
 
 
+
+STUDENT_ASSISTANT_WAITING = set()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+def _ask_gemini_sync(question: str) -> str:
+    """Call Gemini REST API without adding another Python dependency."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+    payload = {
+        "system_instruction": {
+            "parts": [{
+                "text": (
+                    "أنت مساعد تعليمي لطلاب المدارس المهنية في العراق. أجب باللغة العربية الواضحة "
+                    "وبأسلوب عراقي مبسط عند الحاجة. ركز على صيانة وتجميع الحاسوب، المعالجات، شبكات "
+                    "الحاسوب، الرياضيات، الفيزياء، الإنكليزي، العربي والإسلامية. اشرح الخطوات والأسباب "
+                    "ولا تخترع معلومات عن المنهج العراقي؛ إذا لم تكن متأكداً فقل ذلك واطلب صورة السؤال "
+                    "أو اسم الصف والفرع. ساعد الطالب على الفهم ولا تدّعِ أن الإجابة وزارية رسمية ما لم "
+                    "يتوفر مصدر موثوق."
+                )
+            }]
+        },
+        "contents": [{"parts": [{"text": question}]}],
+        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 900}
+    }
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=35) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:300]
+        log.error("Gemini API error %s: %s", exc.code, detail)
+        raise RuntimeError(f"تعذر الاتصال بخدمة الذكاء الاصطناعي (HTTP {exc.code}).") from exc
+    parts = result.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+    answer = "\n".join(p.get("text", "") for p in parts if p.get("text"))
+    if not answer:
+        raise RuntimeError("ما وصلني جواب واضح من خدمة الذكاء الاصطناعي.")
+    return answer[:3900]
+
+async def student_assistant(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg, chat, user = update.effective_message, update.effective_chat, update.effective_user
+    if not msg or not chat or not user or user.is_bot or chat.type not in ("group", "supergroup") or not msg.text:
+        return
+    text = msg.text.strip()
+    key = (chat.id, user.id)
+    if text.casefold() in {"مساعد الطلاب", "مساعد الطالب", "الذكاء المساعد", "اسأل المساعد"}:
+        if not GEMINI_API_KEY:
+            await msg.reply_text(
+                "🎓 مساعد الطلاب جاهز للربط، بس يحتاج مفتاح Gemini حتى يجاوب بالذكاء الاصطناعي.\n"
+                "المطور يضيف GEMINI_API_KEY في متغيرات FadeHost، وبعدها نعيد تشغيل البوت."
+            )
+            return
+        STUDENT_ASSISTANT_WAITING.add(key)
+        await msg.reply_text(
+            "🎓 أهلاً بيك بمساعد طلاب المهني!\n"
+            "دز سؤالك عن المادة برسالة منفصلة، مثل: اشرحلي الفرق بين RAM وROM.\n"
+            "أجاوبك بشرح مبسط. للخروج اكتب: إلغاء المساعد"
+        )
+        return
+    if key not in STUDENT_ASSISTANT_WAITING:
+        return
+    if text.casefold() in {"إلغاء المساعد", "الغاء المساعد", "إلغاء", "الغاء"}:
+        STUDENT_ASSISTANT_WAITING.discard(key)
+        await msg.reply_text("تم إلغاء مساعد الطلاب. إذا تحتاجه مرة ثانية اكتب: مساعد الطلاب")
+        return
+    if not GEMINI_API_KEY:
+        STUDENT_ASSISTANT_WAITING.discard(key)
+        await msg.reply_text("مساعد الذكاء الاصطناعي غير مفعّل حالياً؛ يحتاج إعداد مفتاح الخدمة.")
+        return
+    if len(text) > 2500:
+        await msg.reply_text("خلّي السؤال أقل من 2500 حرف، أو قسّمه على أكثر من رسالة.")
+        return
+    status = await msg.reply_text("🧠 دا أراجع سؤالك وأرتبلك شرح واضح...")
+    try:
+        answer = await asyncio.to_thread(_ask_gemini_sync, text)
+        STUDENT_ASSISTANT_WAITING.discard(key)
+        await status.edit_text("🎓 **مساعد طلاب المهني**\n\n" + answer, parse_mode="Markdown")
+    except Exception:
+        log.exception("Student assistant request failed")
+        await status.edit_text("عذراً، ما كدرت أجيب الجواب هالمرة. جرّب بعد شوي.")
+
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.error("Unhandled bot error", exc_info=context.error)
 
@@ -1422,6 +1510,7 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
     app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.Regex(r"(?i)^اهمس$"), whisper_text_command))
     app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND & filters.Regex(r"(?i)^(تحذير|تحذيراته|سجل مخالفاته|تصفير تحذيراته)$"), natural_moderation_commands))
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND, student_assistant), group=-1)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
     app.add_error_handler(on_error)
