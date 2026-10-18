@@ -1389,7 +1389,7 @@ async def student_assistant(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     try:
         answer = await asyncio.to_thread(_ask_gemini_sync, text)
         STUDENT_ASSISTANT_WAITING.discard(key)
-        await status.edit_text("🎓 **مساعد طلاب المهني**\n\n" + answer, parse_mode="Markdown")
+        await status.edit_text("🎓 مساعد طلاب المهني\n\n" + answer)
     except Exception:
         log.exception("Student assistant request failed")
         await status.edit_text("عذراً، ما كدرت أجيب الجواب هالمرة. جرّب بعد شوي.")
@@ -1510,7 +1510,7 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_members))
     app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.Regex(r"(?i)^اهمس$"), whisper_text_command))
     app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND & filters.Regex(r"(?i)^(تحذير|تحذيراته|سجل مخالفاته|تصفير تحذيراته)$"), natural_moderation_commands))
-    app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND, student_assistant), group=-1)
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS & filters.TEXT & ~filters.COMMAND, student_assistant))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, auto_replies))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, moderate))
     app.add_error_handler(on_error)
