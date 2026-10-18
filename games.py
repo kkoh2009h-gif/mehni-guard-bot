@@ -379,7 +379,7 @@ async def million_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not msg or not chat or not user or chat.type not in ("group", "supergroup"):
         return
     key = _key(chat.id, user.id)
-    DATA["pending"][key] = {"game": "المليون", "level": 0, "prize": 0, "safe": 0, "used_5050": False, "used_change": False}
+    DATA["pending"][key] = {"game": "المليون", "level": 0, "prize": 0, "safe": 0, "used_5050": False, "used_change": False, "round_questions": random.sample(range(len(MILLION_QUESTIONS)), 15)}
     save_data()
     await _million_send_question(context, chat.id, user.id, user.first_name)
 
@@ -389,7 +389,8 @@ async def _million_send_question(context, chat_id, user_id, name=None, edit_quer
     if not state or state.get("game") != "المليون":
         return
     level = state["level"]
-    question, options, answer = MILLION_QUESTIONS[level]
+    question_index = state.get("round_questions", list(range(15)))[level]
+    question, options, answer = MILLION_QUESTIONS[question_index]
     prize = MILLION_PRIZES[min(level, len(MILLION_PRIZES)-1)]
     rows = []
     for i in range(0, 4, 2):
@@ -406,7 +407,7 @@ async def _million_send_question(context, chat_id, user_id, name=None, edit_quer
         rows.append(helpers)
     rows.append([InlineKeyboardButton("🏳️ انسحاب واستلام الجائزة", callback_data=f"millionstop:{user_id}")])
     text = (f"🎮 من سيربح المليون؟\n👤 اللاعب: {name or 'المشارك'}\n"
-            f"🏆 السؤال {level+1} من {len(MILLION_QUESTIONS)}\n💰 الجائزة: {prize}\n\n📝 {question}")
+            f"🏆 السؤال {level+1} من 15\n💰 الجائزة: {prize}\n\n📝 {question}")
     keyboard = InlineKeyboardMarkup(rows)
     if edit_query:
         await edit_query.edit_message_text(text, reply_markup=keyboard)
@@ -442,7 +443,8 @@ async def million_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 return
             state["used_5050"] = True
             level = state["level"]
-            question, options, answer = MILLION_QUESTIONS[level]
+            question_index = state["round_questions"][level]
+            question, options, answer = MILLION_QUESTIONS[question_index]
             wrong = [i for i in range(4) if i != answer]
             random.shuffle(wrong)
             removed = set(wrong[:2])
@@ -468,9 +470,10 @@ async def million_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             state["used_change"] = True
             # Switch to a random unused question while keeping the current level's prize.
             current = state["level"]
-            candidates = [i for i in range(len(MILLION_QUESTIONS)) if i != current]
+            used_indices = set(state["round_questions"])
+            candidates = [i for i in range(len(MILLION_QUESTIONS)) if i not in used_indices]
             replacement = random.choice(candidates)
-            MILLION_QUESTIONS[current], MILLION_QUESTIONS[replacement] = MILLION_QUESTIONS[replacement], MILLION_QUESTIONS[current]
+            state["round_questions"][current] = replacement
             save_data()
             await _million_send_question(context, chat_id, owner_id, query.from_user.first_name, query)
             await query.answer("تم تغيير السؤال!")
@@ -480,7 +483,8 @@ async def million_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         choice = int(rest[0])
         level = state["level"]
-        question, options, answer = MILLION_QUESTIONS[level]
+        question_index = state["round_questions"][level]
+        question, options, answer = MILLION_QUESTIONS[question_index]
         if choice != answer:
             prize = state.get("safe", 0)
             DATA["pending"].pop(key, None)
@@ -493,7 +497,7 @@ async def million_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if state["level"] in (5, 10):
             state["safe"] = state["prize"]
         _award(chat_id, owner_id, 1)
-        if state["level"] >= len(MILLION_QUESTIONS):
+        if state["level"] >= len(state.get("round_questions", [])):
             final_prize = state["prize"]
             DATA["pending"].pop(key, None)
             save_data()
