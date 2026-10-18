@@ -1312,11 +1312,11 @@ async def promote_mchawe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 STUDENT_ASSISTANT_WAITING = set()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 
 def _ask_gemini_sync(question: str) -> str:
     """Call Gemini REST API without adding another Python dependency."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
     payload = {
         "system_instruction": {
             "parts": [{
@@ -1336,7 +1336,7 @@ def _ask_gemini_sync(question: str) -> str:
     request = urllib.request.Request(
         url,
         data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY},
         method="POST",
     )
     try:
