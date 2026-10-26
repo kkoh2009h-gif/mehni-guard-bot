@@ -94,7 +94,7 @@ async def cb(u,c):
         rows += [("⬅️ رجوع",f"browse:{mode}"),("🏠 الرئيسية","home")]
         await q.edit_message_text("\n".join(lines)[:3900], reply_markup=kb(rows)); return
     if d.startswith("url:"):
-        itemid=int(d.split(":")[1]); item=next((x for k in ("teachers","resources") for x in DATA[k] if x.get("id")==itemid),None)
+        itemid=int(d.split(":")[1]); item=next((x for k in ("teachers","booklets","books","info") for x in DATA[k] if x.get("id")==itemid),None)
         if item and item.get("url"):
             await q.message.reply_text(item["url"])
         return
