@@ -10,7 +10,7 @@ OWNER_ID = int(os.getenv("BOT_OWNER_ID", "7996478878"))
 FILE = Path("education_data.json")
 DEPARTMENTS = ["صيانة وتجميع الحاسوب", "الشبكات", "الكهرباء", "الميكانيك والسيارات", "التجاري", "الزراعي", "السياحة والفندقة", "الفنون التطبيقية", "البناء والإنشاءات", "أقسام مهنية أخرى"]
 STAGES = ["الأول المهني", "الثاني المهني", "الثالث المهني"]
-DATA = {"teachers": [], "resources": [], "admins": []}
+DATA = {"teachers": [], "booklets": [], "books": [], "info": [], "admins": []}
 PENDING = {}
 
 def load():
@@ -19,6 +19,8 @@ def load():
         d = json.loads(FILE.read_text(encoding="utf-8"))
         if isinstance(d, dict):
             DATA.update({k: d.get(k, []) for k in DATA})
+            if "resources" in d and "booklets" not in d:
+                DATA["booklets"] = d.get("resources", [])
     except FileNotFoundError:
         pass
     except Exception:
@@ -33,9 +35,9 @@ def owner(uid): return uid == OWNER_ID
 def admin(uid): return owner(uid) or uid in [int(x) for x in DATA["admins"]]
 def kb(rows): return InlineKeyboardMarkup([[InlineKeyboardButton(t, callback_data=d)] for t,d in rows])
 def home():
-    return kb([("👨‍🏫 المدرسون","browse:teachers"),("📚 الكتب والملازم","browse:resources"),("ℹ️ المساعدة","help")])
+    return kb([("👨‍🏫 المدرسون","browse:teachers"),("📝 الملازم","browse:booklets"),("📚 الكتب","browse:books"),("💡 معلومات الدراسة","browse:info"),("ℹ️ المساعدة","help")])
 def panel():
-    return kb([("➕ إضافة مدرس","add:teacher"),("➕ إضافة كتاب/ملزمة","add:resource"),("📋 عرض المحتوى","list"),("👥 إدارة المشرفين","admins")])
+    return kb([("➕ إضافة مدرس","add:teacher"),("➕ إضافة ملزمة","add:booklet"),("➕ إضافة كتاب","add:book"),("➕ إضافة معلومة","add:info"),("📋 عرض المحتوى","list"),("👥 إدارة المشرفين","admins")])
 
 async def start(u,c):
     await u.effective_message.reply_text("🎓 أهلاً بيك ببوت المهني التعليمي\nاختار المدرسين أو الكتب والملازم.", reply_markup=home())
@@ -79,13 +81,14 @@ async def cb(u,c):
         await q.edit_message_text("اختار المرحلة:", reply_markup=kb(rows)); return
     if d.startswith("stage:"):
         _,mode,di,si=d.split(":"); dept=DEPARTMENTS[int(di)]; stage=STAGES[int(si)]
-        key="teachers" if mode=="teachers" else "resources"
+        key=mode if mode in ("teachers", "booklets", "books", "info") else "booklets"
         items=[x for x in DATA[key] if x.get("department")==dept and x.get("stage")==stage]
         if not items:
             await q.edit_message_text("📭 ماكو محتوى مضاف لهذا القسم والمرحلة بعد.", reply_markup=kb([("⬅️ الرئيسية","home")])); return
-        lines=[f"📚 {dept} — {stage}"]; rows=[]
+        section_names={"teachers":"المدرسون","booklets":"الملازم","books":"الكتب","info":"معلومات الدراسة"}
+        lines=[f"{section_names.get(mode, mode)} — {dept} — {stage}"]; rows=[]
         for x in items[:30]:
-            title=x.get("name") if mode=="teachers" else x.get("title","كتاب")
+            title=x.get("name") if mode=="teachers" else x.get("title", "معلومة" if mode=="info" else "محتوى")
             lines.append(f"• {title}"+(f" — {x.get('subject','')}" if x.get("subject") else ""))
             if x.get("url"): rows.append((f"فتح: {title[:30]}", "url:"+str(x["id"])))
         rows += [("⬅️ رجوع",f"browse:{mode}"),("🏠 الرئيسية","home")]
@@ -103,10 +106,12 @@ async def cb(u,c):
             await q.message.reply_text("أضف مشرف: /admin_add USER_ID\nاحذف مشرف: /admin_remove USER_ID\nالشخص يكتب /id حتى تعرف رقمه."); return
         if d=="list":
             lines=["المدرسون:"]+[f"#{x['id']} {x.get('name')} | {x.get('department')} | {x.get('stage')}" for x in DATA["teachers"]]
-            lines+=["\nالكتب والملازم:"]+[f"#{x['id']} {x.get('title')} | {x.get('department')} | {x.get('stage')}" for x in DATA["resources"]]
+            for section, label in (("booklets","الملازم"),("books","الكتب"),("info","المعلومات")):
+                lines += [f"\n{label}:"] + [f"#{x['id']} {x.get('title')} | {x.get('department')} | {x.get('stage')}" for x in DATA[section]]
             await q.message.reply_text("\n".join(lines)[:4000] if len(lines)>2 else "المكتبة فارغة."); return
         kind=d.split(":")[1]; PENDING[uid]={"kind":kind,"step":0,"data":{}}
-        await q.message.reply_text("اكتب اسم المدرس:" if kind=="teacher" else "اكتب عنوان الكتاب أو الملزمة:")
+        prompts={"teacher":"اكتب اسم المدرس:","booklet":"اكتب عنوان الملزمة:","book":"اكتب عنوان الكتاب:","info":"اكتب عنوان المعلومة:"}
+        await q.message.reply_text(prompts.get(kind,"اكتب العنوان:"))
 async def flow(u,c):
     uid=u.effective_user.id; msg=u.effective_message
     if not admin(uid) or uid not in PENDING or not msg.text: return
@@ -125,8 +130,9 @@ async def flow(u,c):
         x["subject"]=body; f["step"]=4; await msg.reply_text("أرسل رابط يبدأ بـ https://")
     else:
         if not body.startswith("https://"): await msg.reply_text("أرسل رابط صحيح يبدأ بـ https://"); return
-        x["url"]=body; x["id"]=max([z.get("id",0) for k in ("teachers","resources") for z in DATA[k]]+[0])+1
-        DATA["teachers" if kind=="teacher" else "resources"].append(x.copy()); save(); PENDING.pop(uid,None)
+        x["url"]=body; x["id"]=max([z.get("id",0) for k in ("teachers","booklets","books","info") for z in DATA[k]]+[0])+1
+        target={"teacher":"teachers","booklet":"booklets","book":"books","info":"info"}[kind]
+        DATA[target].append(x.copy()); save(); PENDING.pop(uid,None)
         await msg.reply_text("✅ تمت الإضافة بنجاح.", reply_markup=panel())
 async def err(u,c): log.exception("Unhandled error", exc_info=c.error)
 def main():
