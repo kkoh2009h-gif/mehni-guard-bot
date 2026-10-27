@@ -19,13 +19,6 @@
       "year": "2026-2027"
     },
     {
-      "id": "private_guide",
-      "title": "الدليل الإرشادي لشروط وضوابط التقديم في الجامعات والكليات الأهلية 2026-2027",
-      "url": "https://mohesr.gov.iq/ar/post/التعليم-تطلق-الدليل-الارشادي-لشروط-وضوابط-التقديم-في-الجامعات-والكليات-الأهلية-2027-2026-09-17-14",
-      "authority": "وزارة التعليم العالي والبحث العلمي",
-      "year": "2026-2027"
-    },
-    {
       "id": "vocational_top_channel",
       "title": "قناة قبول الطلبة الأوائل من خريجي الدراسة المهنية",
       "url": "https://mohesr.gov.iq/ar/post/التعليم-تعلن-إطلاق-قناة-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-09-29-17",
@@ -38,6 +31,15 @@
       "url": "https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13",
       "authority": "وزارة التعليم العالي والبحث العلمي",
       "year": "2026-2027"
+    },
+    {
+      "id": "private_guide",
+      "title": "الدليل الإرشادي لشروط وضوابط التقديم في الجامعات والكليات الأهلية 2026-2027",
+      "url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/17092026.pdf",
+      "official_announcement": "https://www.mohesr.gov.iq/ar/post/التعليم-تطلق-الدليل-الارشادي-لشروط-وضوابط-التقديم-في-الجامعات-والكليات-الأهلية-20272026-2026-09-17-14",
+      "authority": "وزارة التعليم العالي والبحث العلمي",
+      "year": "2026-2027",
+      "verified_on": "2026-10-27"
     }
   ],
   "channels": [
@@ -702,6 +704,252 @@
         "source_page": 238,
         "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
       }
+    ]
+  },
+  "private_admissions": {
+    "source_id": "private_guide",
+    "source_pages": [
+      58,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      72
+    ],
+    "note_ar": "حدود التقديم الدنيا الرسمية للدراسة الأهلية ليست ضمان قبول نهائي؛ القبول تنافسي ويعتمد على مدخلات كل قسم والقناة. بعض الحدود التالية تخص أقساماً محددة فقط، أما بقية التخصصات المهنية فتُحدد وفق الحد المعتمد للتخصص المناظر كما ينص الدليل.",
+    "published_minimums": [
+      {
+        "department": "العلاقات العامة",
+        "study_mode": "morning",
+        "minimum_average": 52,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "العلاقات العامة",
+        "study_mode": "evening",
+        "minimum_average": 54,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "اللغة الفرنسية / الآداب",
+        "study_mode": "morning",
+        "minimum_average": 53,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "اللغة الفرنسية / الآداب",
+        "study_mode": "evening",
+        "minimum_average": 55,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "علم النفس / السريري والإكلينيكي",
+        "study_mode": "morning",
+        "minimum_average": 53,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "علم النفس / السريري والإكلينيكي",
+        "study_mode": "evening",
+        "minimum_average": 55,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "التربية الفنية",
+        "study_mode": "morning",
+        "minimum_average": 53,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "التربية الفنية",
+        "study_mode": "evening",
+        "minimum_average": 55,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "التربية البدنية وعلوم الرياضة",
+        "study_mode": "morning",
+        "minimum_average": 53,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "التربية البدنية وعلوم الرياضة",
+        "study_mode": "evening",
+        "minimum_average": 55,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "إذاعة وتلفزيون",
+        "study_mode": "morning",
+        "minimum_average": 52,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      },
+      {
+        "department": "إذاعة وتلفزيون",
+        "study_mode": "evening",
+        "minimum_average": 54,
+        "minimum_average_type": "official_minimum_to_apply",
+        "source_page": 58
+      }
+    ],
+    "vocational_admission_inputs": [
+      {
+        "department": "هندسة تقنيات الليزر والإلكترونيات البصرية",
+        "vocational_branches": [
+          "الصناعي / إلكترونيك وسيطرة",
+          "الصناعي / اتصالات",
+          "الصناعي / صيانة منظومات الليزر",
+          "الصناعي / أجهزة طبية",
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب"
+        ],
+        "source_page": 61,
+        "minimum_average": null
+      },
+      {
+        "department": "هندسة تقنيات الطاقة المتجددة",
+        "vocational_branches": [
+          "الصناعي / إلكترونيك وسيطرة",
+          "الصناعي / كهرباء",
+          "الصناعي / ميكانيك",
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب"
+        ],
+        "source_page": 61,
+        "minimum_average": null
+      },
+      {
+        "department": "هندسة تقنيات الاتصالات",
+        "vocational_branches": [
+          "الصناعي / اتصالات",
+          "الصناعي / إلكترونيك وسيطرة",
+          "الصناعي / كهرباء",
+          "الصناعي / أجهزة طبية",
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب"
+        ],
+        "source_page": 62,
+        "minimum_average": null
+      },
+      {
+        "department": "هندسة تقنيات الأمن السيبراني",
+        "vocational_branches": [
+          "الصناعي / إلكترونيك وسيطرة",
+          "الصناعي / تكنولوجيا الإعلام",
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية"
+        ],
+        "source_page": 62,
+        "minimum_average": null
+      },
+      {
+        "department": "هندسة تقنيات الحاسبات",
+        "vocational_branches": [
+          "الصناعي / إلكترونيك وسيطرة",
+          "الصناعي / اتصالات",
+          "الصناعي / صيانة الحاسوب",
+          "الصناعي / كهرباء",
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب"
+        ],
+        "source_page": 63,
+        "minimum_average": null
+      },
+      {
+        "department": "هندسة تقنيات الأجهزة الطبية",
+        "vocational_branches": [
+          "الصناعي / أجهزة طبية",
+          "الصناعي / إلكترونيك وسيطرة"
+        ],
+        "source_page": 63,
+        "minimum_average": null
+      },
+      {
+        "department": "هندسة تقنيات التبريد والتكييف",
+        "vocational_branches": [
+          "الصناعي / تكييف الهواء والتثليج",
+          "الصناعي / ميكانيك",
+          "الصناعي / كهرباء",
+          "الصناعي / سيارات",
+          "الصناعي / نجارة",
+          "الصناعي / طباعة",
+          "الصناعي / نسيج"
+        ],
+        "source_page": 64,
+        "minimum_average": null
+      },
+      {
+        "department": "هندسة تقنيات الميكاترونكس",
+        "vocational_branches": [
+          "الصناعي / إلكترونيك وسيطرة",
+          "الصناعي / كهرباء",
+          "الصناعي / ميكانيك",
+          "الصناعي / تكنولوجيا ميكاترونكس صناعية",
+          "الصناعي / ميكاترونكس السيارات",
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب"
+        ],
+        "source_page": 65,
+        "minimum_average": null
+      },
+      {
+        "department": "هندسة تقنيات الذكاء الاصطناعي والروبوتات",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "الصناعي / إلكترونيك وسيطرة",
+          "الصناعي / تكنولوجيا ميكاترونكس صناعية",
+          "الصناعي / تكنولوجيا الإعلام"
+        ],
+        "source_page": 65,
+        "minimum_average": null
+      },
+      {
+        "department": "تقنيات أنظمة المعلومات",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "الصناعي / إلكترونيك وسيطرة",
+          "الصناعي / تكنولوجيا الإعلام",
+          "الصناعي / كهرباء"
+        ],
+        "source_page": 72,
+        "minimum_average": null
+      },
+      {
+        "department": "تقنيات الإعلام الرقمي",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / صيانة وتجميع الحاسوب",
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "الصناعي / تكنولوجيا الإعلام",
+          "الصناعي / اتصالات",
+          "الصناعي / إلكترونيك وسيطرة"
+        ],
+        "source_page": 72,
+        "minimum_average": null
+      }
+    ],
+    "data_policy": [
+      "لا تعمم الحدود الدنيا لأقسام محددة على هندسة الحاسبات أو بقية التخصصات.",
+      "حدود التقديم ليست معدلات القبول النهائي بعد المفاضلة.",
+      "المعدل الأدنى للتخصصات المهنية الأخرى يؤخذ من الصف/القسم المناظر في دليل الوزارة، ولا يُخمن."
     ]
   }
 }
