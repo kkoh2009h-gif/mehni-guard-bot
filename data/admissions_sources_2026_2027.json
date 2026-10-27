@@ -1,0 +1,71 @@
+{
+  "academic_year": "2026-2027",
+  "dataset_status": "incomplete",
+  "notice_ar": "هذا الملف يسجل المصادر الرسمية المطلوبة لبناء قاعدة القبولات. لا يحتوي على معدلات أو أقسام مفترضة. لا تُعرض أي نتيجة كقبول مضمون.",
+  "sources": [
+    {
+      "id": "government_student_guide_2026_2027",
+      "title_ar": "دليل الطالب للقبول المركزي في الجامعات الحكومية",
+      "category": "government_morning_eligibility",
+      "url": "https://dirasat.mohesr.gov.iq/download-center.html?lang=ar",
+      "authority": "وزارة التعليم العالي والبحث العلمي العراقية",
+      "academic_year": "2026-2027",
+      "verified_on": "2026-10-27",
+      "notes_ar": "يُستخدم لاستخراج الجامعات والكليات والأقسام المؤهلة لخريجي الفروع المهنية؛ لا يُعامل وحده كحد أدنى تنافسي لكل قسم."
+    },
+    {
+      "id": "private_colleges_guide_2026_2027",
+      "title_ar": "دليل الجامعات والكليات الأهلية 2026-2027",
+      "category": "private_eligibility",
+      "url": "https://cent.mohesr.gov.iq/Ahly2026v3.pdf",
+      "authority": "وزارة التعليم العالي والبحث العلمي العراقية",
+      "academic_year": "2026-2027",
+      "verified_on": "2026-10-27",
+      "notes_ar": "يجب استخراج الأقسام وشروط كل اختصاص مهني من الدليل، والتحقق من تعليمات الأجور والتقديم المنشورة رسمياً."
+    },
+    {
+      "id": "vocational_top_students_channel_2026_2027",
+      "title_ar": "إطلاق قناة قبول الطلبة الأوائل من خريجي الدراسة المهنية",
+      "category": "top_vocational_students",
+      "url": "https://mohesr.gov.iq/ar/post/التعليم-تعلن-إطلاق-قناة-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-09-29-17",
+      "authority": "وزارة التعليم العالي والبحث العلمي العراقية",
+      "academic_year": "2026-2027",
+      "verified_on": "2026-10-27",
+      "notes_ar": "قناة خاصة بالطلبة الأوائل؛ لا تُعمم شروطها على جميع خريجي المهني."
+    },
+    {
+      "id": "vocational_top_students_results_2026_2027",
+      "title_ar": "نتائج قبول الطلبة الأوائل من خريجي الدراسة المهنية",
+      "category": "published_results",
+      "url": "https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13",
+      "authority": "وزارة التعليم العالي والبحث العلمي العراقية",
+      "academic_year": "2026-2027",
+      "verified_on": "2026-10-27",
+      "notes_ar": "نتائج قناة الأوائل ليست حدوداً دنيا عامة لكل الأقسام أو لكل قنوات القبول."
+    }
+  ],
+  "record_schema": {
+    "academic_year": "2026-2027",
+    "institution": "الاسم الرسمي للجامعة أو الكلية أو المعهد",
+    "institution_type": "government|private|technical_institute",
+    "college": "اسم الكلية عند انطباقه",
+    "department": "اسم القسم",
+    "governorate": "المحافظة",
+    "study_mode": "morning|evening|private",
+    "vocational_branch": "الفرع المهني المؤهل أو الكل",
+    "vocational_specialty": "الاختصاص المهني المناظر أو القريب",
+    "minimum_average": null,
+    "minimum_average_type": "eligibility_threshold|previous_competitive_cutoff|not_published",
+    "source_url": "رابط رسمي مباشر",
+    "source_page": null,
+    "verified_on": "YYYY-MM-DD",
+    "status": "verified|needs_review"
+  },
+  "data_policy": [
+    "لا يُملأ minimum_average إلا إذا ورد رقم صريح في مصدر رسمي محدد.",
+    "شروط الأهلية تختلف عن الحدود الدنيا التنافسية الفعلية.",
+    "كل سجل يجب أن يرتبط بسنة دراسية ومصدر ورقم صفحة عند توفره.",
+    "لا تُعتبر نتيجة البحث وعداً بالقبول النهائي.",
+    "تُراجع شروط كل قناة على حدة: حكومي صباحي، حكومي مسائي، أهلي، معاهد، وقناة الطلبة الأوائل."
+  ]
+}
