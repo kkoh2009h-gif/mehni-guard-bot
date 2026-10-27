@@ -136,5 +136,292 @@
     "لا يُستخدم معدل سنة سابقة على أنه معدل قبول 2026-2027.",
     "لا تعني نتيجة البحث ضمان القبول النهائي.",
     "ينبغي فصل قناة الأوائل عن القبول العام، وفصل الحكومي الصباحي والمسائي والأهلي والمعاهد."
-  ]
+  ],
+  "extraction": {
+    "source_id": "procedures_guide",
+    "official_section": "ملحق 11: جدول مسارات التعليم لقبول خريجي الإعداديات المهنية في كليات البوليتكنك والمعاهد التقنية للدراستين الصباحية والمسائية",
+    "source_pages": [
+      241,
+      242,
+      243
+    ],
+    "extracted_on": "2026-10-27",
+    "scope_note_ar": "هذه المسارات المستخرجة تخص مطابقة اختصاصات مهنية مع أقسام مذكورة في ملحق 11، ولا تثبت وجود القسم في كل مؤسسة، ولا تمثل معدلات تنافسية أو ضمان قبول. اسم الكلية/المعهد التفصيلي يجب مطابقته مع دليل الطالب وخطة المؤسسة.",
+    "verified_pathways": [
+      {
+        "id": "polytechnic_engineering_electrical",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة التقنيات الكهربائية",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / أجهزة طبية",
+          "صناعي / توليد الطاقة الكهربائية ونقلها",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / اتصالات",
+          "صناعي / صيانة منظومات الليزر",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 241
+      },
+      {
+        "id": "polytechnic_engineering_electronic",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة التقنيات الإلكترونية",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / أجهزة طبية",
+          "صناعي / توليد الطاقة الكهربائية ونقلها",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / اتصالات",
+          "صناعي / صيانة منظومات الليزر",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 241
+      },
+      {
+        "id": "polytechnic_computer_networks_software",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات شبكات الحاسوب وبرمجياته",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242
+      },
+      {
+        "id": "polytechnic_electronic_communications",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة التقنيات الإلكترونية والاتصالات",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / أجهزة طبية",
+          "صناعي / توليد الطاقة الكهربائية ونقلها",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / اتصالات",
+          "صناعي / صيانة منظومات الليزر",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242
+      },
+      {
+        "id": "polytechnic_smart_networks",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات الشبكات والأنظمة الذكية",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242
+      },
+      {
+        "id": "polytechnic_mechatronics",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات الميكاترونكس",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "صناعي / تكنولوجيا ميكاترونكس صناعية",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / ميكاترونكس السيارات",
+          "صناعي / ميكانيك",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242
+      },
+      {
+        "id": "polytechnic_autotronics",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات الأوتوترونكس",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "صناعي / تكنولوجيا ميكاترونكس صناعية",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / ميكاترونكس السيارات",
+          "صناعي / ميكانيك",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242
+      },
+      {
+        "id": "polytechnic_information_technology",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات تكنولوجيا المعلومات",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242
+      },
+      {
+        "id": "polytechnic_renewable_energy",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات الطاقة المتجددة",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "صناعي / ميكانيك",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242
+      },
+      {
+        "id": "polytechnic_information_communications",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات تكنولوجيا المعلومات والاتصالات",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / اتصالات"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242
+      },
+      {
+        "id": "polytechnic_software_ai",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات البرمجيات والذكاء الاصطناعي",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 243
+      },
+      {
+        "id": "polytechnic_cybersecurity",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات تكنولوجيا المعلومات والأمن السيبراني",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "صناعي / اتصالات"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 243
+      },
+      {
+        "id": "polytechnic_computer_ai",
+        "institution_type": "polytechnic",
+        "college_group": "البوليتكنك الهندسية",
+        "department": "هندسة تقنيات الحاسوب والذكاء الاصطناعي",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "صناعي / تكنولوجيا الإعلام"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 243
+      }
+    ]
+  }
 }
