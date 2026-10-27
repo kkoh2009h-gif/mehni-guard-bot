@@ -151,15 +151,38 @@ async def flow(u,c):
             registry=json.loads(Path("admissions_2026_2027.json").read_text(encoding="utf-8"))
             pathways=registry.get("extraction",{}).get("verified_pathways",[])
             query=x["department"].casefold()
-            aliases={"حاسوب":["الحاسوب","حاسوب","صيانة وتجميع","شبكات الحاسوب","تقنية المعلومات"],"كهرباء":["كهرباء","الكهرباء"],"اتصالات":["اتصالات","الاتصالات"],"الكترون":["الكترون","إلكترون"],"إلكترون":["الكترون","إلكترون"]}
-            needles=[]
-            for key,vals in aliases.items():
-                if key in query: needles.extend(vals)
-            needles += [w for w in query.replace("/"," ").split() if len(w)>=4]
+            def norm_ar(text):
+                text=text.casefold().replace("أ","ا").replace("إ","ا").replace("آ","ا").replace("ى","ي").replace("ة","ه")
+                return " ".join("".join(ch if ch.isalnum() or ch.isspace() else " " for ch in text).split())
+            qnorm=norm_ar(query)
+            # Match the user's stated vocational specialty, not arbitrary shared words.
+            branch_aliases={
+                "صيانة وتجميع الحاسوب":["تجميع وصيانة الحاسوب","صيانة وتجميع الحاسوب","صيانة الحاسوب"],
+                "شبكات الحاسوب":["شبكات الحاسوب","شبكات"],
+                "تقنيات الحاسوب":["تقنية المعلومات والحاسوب","الحاسوب","حاسوب","الحاسبات"],
+                "كهرباء":["صناعي / كهرباء","الكهرباء"],
+                "اتصالات":["صناعي / اتصالات","هندسة تقنيات الاتصالات"],
+                "الكترون":["الكترونيك وسيطرة","إلكترونيك وسيطرة","الكترونيات"]
+            }
+            def matches_branch(branches, qnorm):
+                normalized=[norm_ar(b) for b in branches]
+                if any(term in qnorm for term in ("صيانة وتجميع الحاسوب","تجميع وصيانة الحاسوب","صيانة الحاسوب")):
+                    return any(("تجميع وصيانة الحاسوب" in b or "صيانة وتجميع الحاسوب" in b or "صيانة الحاسوب" in b) for b in normalized)
+                if "شبكات" in qnorm:
+                    return any("شبكات الحاسوب" in b for b in normalized)
+                if any(term in qnorm for term in ("حاسوب","الحاسوب","حاسبات","تقنية المعلومات")):
+                    return any("تقنية المعلومات والحاسوب" in b or "الحاسوب" in b or "حاسوب" in b for b in normalized)
+                if "كهرب" in qnorm:
+                    return any("كهرباء" in b for b in normalized)
+                if "اتصالات" in qnorm or "اتصال" in qnorm:
+                    return any("اتصالات" in b for b in normalized)
+                if "الكترون" in qnorm or "إلكترون" in query:
+                    return any("الكترونيك" in b or "الكترونيات" in b for b in normalized)
+                # For less common branches require a meaningful normalized phrase.
+                return len(qnorm)>=5 and any(qnorm in b or b in qnorm for b in normalized)
             matches=[]
             for p in pathways:
-                branch_text=" ".join(p.get("vocational_branches",[])).casefold()
-                if any(n.casefold() in branch_text for n in needles) and any(n in branch_text for n in ("الحاسوب","حاسوب","صناعي")):
+                if matches_branch(p.get("vocational_branches",[]), qnorm):
                     matches.append(p)
             if matches and x["mode"] in ("صباحي","مسائي"):
                 lines.append("\n🎓 مسارات وردت في الدليل الرسمي للبوليتكنك والمعاهد التقنية (ملحق 11، صفحات 237–243):")
@@ -168,11 +191,9 @@ async def flow(u,c):
                 lines.append("\nهذه مسارات مهنية وليست تأكيداً بأن القسم متاح في كل مؤسسة أو محافظة. يجب مراجعة دليل الطالب وخطة المؤسسة.")
             if x["mode"] == "أهلي":
                 private_inputs=registry.get("private_admissions",{}).get("vocational_admission_inputs",[])
-                query_words=[w for w in query.replace("/"," ").split() if len(w)>=4]
                 private_matches=[]
                 for p in private_inputs:
-                    branch_text=" ".join(p.get("vocational_branches",[])).casefold()
-                    if any(w in branch_text for w in query_words) or any(k in query for k in ("حاسوب","حواسيب","صيانة","شبكات","إلكترون","اتصالات")) and any(k in branch_text for k in ("الحاسوب","حاسوب","صيانة","شبكات")):
+                    if matches_branch(p.get("vocational_branches",[]), qnorm):
                         private_matches.append(p)
                 if private_matches:
                     lines.append("\n🏫 اختصاصات مذكورة ضمن مدخلات القبول الأهلي الرسمية:")
