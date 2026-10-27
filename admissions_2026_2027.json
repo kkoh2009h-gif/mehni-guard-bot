@@ -1,0 +1,140 @@
+{
+  "academic_year": "2026-2027",
+  "status": "partial_verified_dataset",
+  "last_checked": "2026-10-27",
+  "note_ar": "هذه قاعدة أولية موثقة للمسارات والقنوات وليست قائمة شاملة بكل جامعة وقسم. لا توجد معدلات تنافسية مدخلة ما لم يذكر المصدر الرسمي الرقم صراحة.",
+  "sources": [
+    {
+      "id": "procedures_guide",
+      "title": "دليل إجراءات شؤون الطلبة وضوابط القبول وشروطه 2026-2027",
+      "url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf",
+      "authority": "وزارة التعليم العالي والبحث العلمي",
+      "year": "2026-2027"
+    },
+    {
+      "id": "central_guide",
+      "title": "دليل الطالب للقبول المركزي 2026-2027",
+      "url": "https://dirasat.mohesr.gov.iq/download-center.html?lang=ar",
+      "authority": "وزارة التعليم العالي والبحث العلمي",
+      "year": "2026-2027"
+    },
+    {
+      "id": "private_guide",
+      "title": "الدليل الإرشادي لشروط وضوابط التقديم في الجامعات والكليات الأهلية 2026-2027",
+      "url": "https://mohesr.gov.iq/ar/post/التعليم-تطلق-الدليل-الارشادي-لشروط-وضوابط-التقديم-في-الجامعات-والكليات-الأهلية-2027-2026-09-17-14",
+      "authority": "وزارة التعليم العالي والبحث العلمي",
+      "year": "2026-2027"
+    },
+    {
+      "id": "vocational_top_channel",
+      "title": "قناة قبول الطلبة الأوائل من خريجي الدراسة المهنية",
+      "url": "https://mohesr.gov.iq/ar/post/التعليم-تعلن-إطلاق-قناة-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-09-29-17",
+      "authority": "وزارة التعليم العالي والبحث العلمي",
+      "year": "2026-2027"
+    },
+    {
+      "id": "vocational_top_results",
+      "title": "نتائج قبول الطلبة الأوائل من خريجي الدراسة المهنية",
+      "url": "https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13",
+      "authority": "وزارة التعليم العالي والبحث العلمي",
+      "year": "2026-2027"
+    }
+  ],
+  "channels": [
+    {
+      "id": "government_morning_top_vocational",
+      "label_ar": "حكومي صباحي — قناة الأوائل من خريجي المهني",
+      "study_mode": "morning",
+      "institution_type": "government",
+      "eligible_graduates": "الطلبة الأوائل من خريجي الدراسة المهنية للدور الأول حسب إعلان الوزارة",
+      "vocational_specialty_match": "التخصص المناظر أو القريب حسب دليل الطالب",
+      "minimum_average": null,
+      "minimum_average_type": "not_added",
+      "source_id": "vocational_top_channel",
+      "important_note_ar": "هذه قناة خاصة بالأوائل وليست القبول العام لكل خريجي المهني. إعلان النتائج لعام 2026 يثبت قبول 5163 طالباً لكنه لا يثبت معدلاً أدنى موحداً لكل قسم."
+    },
+    {
+      "id": "government_institutes_vocational",
+      "label_ar": "حكومي — المعاهد التقنية لخريجي المهني",
+      "study_mode": "varies_by_institute",
+      "institution_type": "government_technical_institute",
+      "eligible_graduates": "خريجو الفروع المهنية وفق الاختصاصات المناظرة والشروط الواردة في دليل إجراءات شؤون الطلبة",
+      "vocational_specialty_match": "يلزم مطابقة الفرع والاختصاص مع جداول الدليل",
+      "minimum_average": null,
+      "minimum_average_type": "not_added",
+      "source_id": "procedures_guide"
+    },
+    {
+      "id": "government_evening_vocational",
+      "label_ar": "حكومي مسائي",
+      "study_mode": "evening",
+      "institution_type": "government",
+      "eligible_graduates": "وفق القسم والجامعة وضوابط الدراسة المسائية المنشورة رسمياً",
+      "vocational_specialty_match": "لا يُفترض أن كل قسم يقبل كل فرع مهني",
+      "minimum_average": null,
+      "minimum_average_type": "not_added",
+      "source_id": "procedures_guide"
+    },
+    {
+      "id": "private_vocational",
+      "label_ar": "أهلي",
+      "study_mode": "private",
+      "institution_type": "private",
+      "eligible_graduates": "وفق دليل الجامعات والكليات الأهلية وشروط كل قسم للعام 2026-2027",
+      "vocational_specialty_match": "يجب ربط الفرع المهني بالقسم المسموح به في الدليل",
+      "minimum_average": null,
+      "minimum_average_type": "not_added",
+      "source_id": "private_guide"
+    },
+    {
+      "id": "polytechnic_vocational",
+      "label_ar": "الكليات التقنية والبوليتكنك",
+      "study_mode": "varies_by_institute",
+      "institution_type": "technical_college_or_polytechnic",
+      "eligible_graduates": "حسب التخصص المناظر أو القريب وخطة القبول المنشورة",
+      "vocational_specialty_match": "يستخرج كل قسم على حدة من دليل الطالب ودليل الإجراءات",
+      "minimum_average": null,
+      "minimum_average_type": "not_added",
+      "source_id": "procedures_guide"
+    }
+  ],
+  "vocational_branches": [
+    "الصناعي — صيانة وتجميع الحاسوب",
+    "الصناعي — تقنيات الحاسوب/الحاسبات",
+    "الصناعي — الكهرباء",
+    "الصناعي — الإلكترونيات والاتصالات",
+    "الصناعي — الميكانيك",
+    "التجاري",
+    "الزراعي",
+    "السياحة والفندقة",
+    "الفنون التطبيقية",
+    "البناء والإنشاءات",
+    "فروع مهنية أخرى"
+  ],
+  "records": [],
+  "record_schema": {
+    "institution_name": "string",
+    "college_name": "string",
+    "department_name": "string",
+    "governorate": "string",
+    "institution_type": "government|private|government_technical_institute|polytechnic",
+    "study_mode": "morning|evening|private",
+    "vocational_branch": "exact official branch name",
+    "vocational_specialty": "exact specialty",
+    "academic_year": "2026-2027",
+    "eligibility_threshold": null,
+    "competitive_cutoff": null,
+    "minimum_average_type": "eligibility_threshold|previous_competitive_cutoff|not_published",
+    "source_url": "official URL",
+    "source_page": null,
+    "verified_on": "YYYY-MM-DD",
+    "status": "verified|needs_review"
+  },
+  "data_rules": [
+    "لا تُملأ records بأسماء أقسام أو جامعات من التخمين؛ يجب أن يكون لكل سجل نص رسمي ورقم صفحة أو رابط مباشر.",
+    "شرط الأهلية ليس معدلاً تنافسياً نهائياً.",
+    "لا يُستخدم معدل سنة سابقة على أنه معدل قبول 2026-2027.",
+    "لا تعني نتيجة البحث ضمان القبول النهائي.",
+    "ينبغي فصل قناة الأوائل عن القبول العام، وفصل الحكومي الصباحي والمسائي والأهلي والمعاهد."
+  ]
+}
