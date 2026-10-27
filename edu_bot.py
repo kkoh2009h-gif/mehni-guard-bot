@@ -68,9 +68,9 @@ async def cb(u,c):
     if d=="help":
         await q.edit_message_text("اختار المدرسين أو الكتب أو قبولات الجامعات. نتائج القبول تعتمد على البيانات الرسمية المتاحة. للإدارة استخدم /admin.", reply_markup=home()); return
     if d=="admissions:start":
-        await q.message.reply_text("🎓 قبولات الجامعات 2026-2027\\nدليل الطالب الحكومي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\\nدليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\\nنتائج أوائل المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13\\n\\nتگدر تبحث بالسجلات اللي يضيفها الأدمن أو تراجع الدليل الرسمي.").reply_markup if False else None
+        await q.message.reply_text("🎓 قبولات الجامعات 2026-2027\\nدليل الطالب الحكومي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\\nدليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\\nنتائج أوائل المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13\\n\\nاكتب اختصاصك المهني للبحث في سجلات القبول التي يضيفها الأدمن.")
         PENDING[uid]={"kind":"admission_search","step":0,"data":{}}
-        await q.message.reply_text("حتى نطابق القبولات، اكتب اختصاصك المهني:")
+        await q.message.reply_text("اكتب اختصاصك المهني:")
         return
     if d=="home":
         await q.edit_message_text("🎓 بوت المهني التعليمي", reply_markup=home()); return
