@@ -113,6 +113,8 @@ async def cb(u,c):
             lines=["المدرسون:"]+[f"#{x['id']} {x.get('name')} | {x.get('department')} | {x.get('stage')}" for x in DATA["teachers"]]
             for section, label in (("booklets","الملازم"),("books","الكتب"),("info","المعلومات")):
                 lines += [f"\n{label}:"] + [f"#{x['id']} {x.get('title')} | {x.get('department')} | {x.get('stage')}" for x in DATA[section]]
+            lines += ["\nسجلات القبول:"]
+            lines += [f"#{x.get('id')} {x.get('college')} — {x.get('major')} | {x.get('mode')} | {x.get('governorate')} | المعدل: {x.get('min_average')} | المصدر: {x.get('url') or 'غير مضاف'}" for x in DATA.get("admissions", [])]
             await q.message.reply_text("\n".join(lines)[:4000] if len(lines)>2 else "المكتبة فارغة."); return
         kind=d.split(":")[1]; PENDING[uid]={"kind":kind,"step":0,"data":{}}
         prompts={"teacher":"اكتب اسم المدرس:","booklet":"اكتب عنوان الملزمة:","book":"اكتب عنوان الكتاب:","info":"اكتب عنوان المعلومة:","admission":"اكتب اسم الجامعة أو الكلية:"}
