@@ -10,7 +10,7 @@ OWNER_ID = int(os.getenv("BOT_OWNER_ID", "7996478878"))
 FILE = Path("education_data.json")
 DEPARTMENTS = ["صيانة وتجميع الحاسوب", "الشبكات", "الكهرباء", "الميكانيك والسيارات", "التجاري", "الزراعي", "السياحة والفندقة", "الفنون التطبيقية", "البناء والإنشاءات", "أقسام مهنية أخرى"]
 STAGES = ["الأول المهني", "الثاني المهني", "الثالث المهني"]
-DATA = {"teachers": [], "booklets": [], "books": [], "info": [], "admins": []}
+DATA = {"teachers": [], "booklets": [], "books": [], "info": [], "admissions": [], "admins": []}
 PENDING = {}
 
 def load():
@@ -35,7 +35,7 @@ def owner(uid): return uid == OWNER_ID
 def admin(uid): return owner(uid) or uid in [int(x) for x in DATA["admins"]]
 def kb(rows): return InlineKeyboardMarkup([[InlineKeyboardButton(t, callback_data=d)] for t,d in rows])
 def home():
-    return kb([("👨‍🏫 المدرسون","browse:teachers"),("📝 الملازم","browse:booklets"),("📚 الكتب","browse:books"),("💡 معلومات الدراسة","browse:info"),("ℹ️ المساعدة","help")])
+    return kb([("👨‍🏫 المدرسون","browse:teachers"),("📝 الملازم","browse:booklets"),("📚 الكتب","browse:books"),("💡 معلومات الدراسة","browse:info"),("🎓 قبولات الجامعات","admissions:start"),("ℹ️ المساعدة","help")])
 def panel():
     return kb([("➕ إضافة مدرس","add:teacher"),("➕ إضافة ملزمة","add:booklet"),("➕ إضافة كتاب","add:book"),("➕ إضافة معلومة","add:info"),("📋 عرض المحتوى","list"),("👥 إدارة المشرفين","admins")])
 
@@ -66,7 +66,9 @@ async def deladmin(u,c):
 async def cb(u,c):
     q=u.callback_query; await q.answer(); d=q.data or ""; uid=q.from_user.id
     if d=="help":
-        await q.edit_message_text("اختار المدرسين أو الكتب، ثم القسم والمرحلة. للإدارة استخدم /admin.", reply_markup=home()); return
+        await q.edit_message_text("اختار المدرسين أو الكتب أو قبولات الجامعات. نتائج القبول تعتمد على البيانات الرسمية المتاحة. للإدارة استخدم /admin.", reply_markup=home()); return
+    if d=="admissions:start":
+        await q.message.reply_text("🎓 قبولات الجامعات 2026-2027\\nالدليل الحكومي: https://dirasat.mohesr.gov.iq/\\nدليل الجامعات والكليات الأهلية: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\\nنتائج قبول الطلبة الأوائل من المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13\\n\\nتنبيه: الروابط الرسمية هي المرجع النهائي؛ لم تُستخرج بعد كل الحدود الدنيا لكل قسم من الأدلة."); return
     if d=="home":
         await q.edit_message_text("🎓 بوت المهني التعليمي", reply_markup=home()); return
     if d.startswith("browse:"):
