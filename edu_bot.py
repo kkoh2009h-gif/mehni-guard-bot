@@ -142,12 +142,38 @@ async def flow(u,c):
             br=a.get("department","")
             if a.get("mode")==x["mode"] and a.get("governorate","").casefold()==x["governorate"].casefold() and x["average"]>=mn and (not br or br.casefold()=="الكل" or br.casefold() in x["department"].casefold() or x["department"].casefold() in br.casefold()):
                 found.append(a)
+        lines=[]
         if found:
-            lines=["نتائج مطابقة للسجلات التي أدخلها الأدمن (ليست ضمان قبول):"]
-            for a in found[:15]: lines.append(f"\n{a.get('college')} — {a.get('major')}\nالمحافظة: {a.get('governorate')} | الدراسة: {a.get('mode')}\nأقل معدل مسجل: {a.get('min_average')}\nالمصدر: {a.get('url','غير مضاف')}")
+            lines.append("📌 سجلات القبول التي أضافها المشرفون (ليست ضمان قبول):")
+            for item in found[:10]:
+                lines.append(f"\n{item.get('college')} — {item.get('major')}\nالمحافظة: {item.get('governorate')} | الدراسة: {item.get('mode')}\nأقل معدل مسجل: {item.get('min_average')}\nالمصدر: {item.get('url') or 'غير مضاف'}")
+        try:
+            registry=json.loads(Path("admissions_2026_2027.json").read_text(encoding="utf-8"))
+            pathways=registry.get("extraction",{}).get("verified_pathways",[])
+            query=x["department"].casefold()
+            aliases={"حاسوب":["الحاسوب","حاسوب","صيانة وتجميع","شبكات الحاسوب","تقنية المعلومات"],"كهرباء":["كهرباء","الكهرباء"],"اتصالات":["اتصالات","الاتصالات"],"الكترون":["الكترون","إلكترون"],"إلكترون":["الكترون","إلكترون"]}
+            needles=[]
+            for key,vals in aliases.items():
+                if key in query: needles.extend(vals)
+            needles += [w for w in query.replace("/"," ").split() if len(w)>=4]
+            matches=[]
+            for p in pathways:
+                branch_text=" ".join(p.get("vocational_branches",[])).casefold()
+                if any(n.casefold() in branch_text for n in needles) and any(n in branch_text for n in ("الحاسوب","حاسوب","صناعي")):
+                    matches.append(p)
+            if matches and x["mode"] in ("صباحي","مسائي"):
+                lines.append("\n🎓 مسارات وردت في الدليل الرسمي للبوليتكنك والمعاهد التقنية (ملحق 11، صفحات 241–243):")
+                for p in matches[:12]:
+                    lines.append(f"\n• {p['department']} — {p['college_group']}\nالاختصاصات المناظرة: {', '.join(p['vocational_branches'][:4])}\nالحد الأدنى التنافسي: غير مذكور في جدول المسارات.")
+                lines.append("\nهذه مسارات مهنية وليست تأكيداً بأن القسم متاح في كل مؤسسة أو محافظة. يجب مراجعة دليل الطالب وخطة المؤسسة.")
+        except Exception:
+            log.exception("Could not read official admissions pathway registry")
+        if lines:
+            lines.append("\nالدليل الرسمي: https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf")
+            lines.append("دليل الطالب: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar")
             await msg.reply_text("\n".join(lines)[:3900],reply_markup=home())
         else:
-            await msg.reply_text("ماكو سجل قبول مدخل ومطابق حالياً؛ هذا لا يعني أنك غير مقبول. راجع الدليل الرسمي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\nودليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf",reply_markup=home())
+            await msg.reply_text("ماكو سجل أو مسار مطابق حالياً؛ هذا لا يعني أنك غير مقبول. راجع الدليل الرسمي: https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf\nودليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf",reply_markup=home())
         return
     if not admin(uid): return
     if kind=="admission":
