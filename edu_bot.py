@@ -162,10 +162,28 @@ async def flow(u,c):
                 if any(n.casefold() in branch_text for n in needles) and any(n in branch_text for n in ("الحاسوب","حاسوب","صناعي")):
                     matches.append(p)
             if matches and x["mode"] in ("صباحي","مسائي"):
-                lines.append("\n🎓 مسارات وردت في الدليل الرسمي للبوليتكنك والمعاهد التقنية (ملحق 11، صفحات 241–243):")
+                lines.append("\n🎓 مسارات وردت في الدليل الرسمي للبوليتكنك والمعاهد التقنية (ملحق 11، صفحات 237–243):")
                 for p in matches[:12]:
                     lines.append(f"\n• {p['department']} — {p['college_group']}\nالاختصاصات المناظرة: {', '.join(p['vocational_branches'][:4])}\nالحد الأدنى التنافسي: غير مذكور في جدول المسارات.")
                 lines.append("\nهذه مسارات مهنية وليست تأكيداً بأن القسم متاح في كل مؤسسة أو محافظة. يجب مراجعة دليل الطالب وخطة المؤسسة.")
+            if x["mode"] == "أهلي":
+                private_inputs=registry.get("private_admissions",{}).get("vocational_admission_inputs",[])
+                query_words=[w for w in query.replace("/"," ").split() if len(w)>=4]
+                private_matches=[]
+                for p in private_inputs:
+                    branch_text=" ".join(p.get("vocational_branches",[])).casefold()
+                    if any(w in branch_text for w in query_words) or any(k in query for k in ("حاسوب","حواسيب","صيانة","شبكات","إلكترون","اتصالات")) and any(k in branch_text for k in ("الحاسوب","حاسوب","صيانة","شبكات")):
+                        private_matches.append(p)
+                if private_matches:
+                    lines.append("\n🏫 اختصاصات مذكورة ضمن مدخلات القبول الأهلي الرسمية:")
+                    for p in private_matches[:10]:
+                        lines.append(f"\n• {p['department']}\nالفروع المهنية المناظرة: {', '.join(p['vocational_branches'][:5])}\nالحد الأدنى الخاص بهذا السجل: غير مدخل؛ راجع الحد المعلن للتخصص في الدليل.")
+                    lines.append("\nتوافر القسم يختلف بين الجامعات والكليات الأهلية؛ هذه مدخلات قبول وليست ضمان قبول.")
+                private_mins=registry.get("private_admissions",{}).get("published_minimums",[])
+                if private_mins:
+                    lines.append("\nالحدود الدنيا المنشورة لأقسام محددة في الدليل الأهلي (ليست خاصة بكل التخصصات المهنية):")
+                    for m in private_mins[:6]:
+                        lines.append(f"• {m['department']} — {m['study_mode']} — {m['minimum_average']}% (ص {m['source_page']})")
         except Exception:
             log.exception("Could not read official admissions pathway registry")
         if lines:
