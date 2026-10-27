@@ -68,7 +68,7 @@ async def cb(u,c):
     if d=="help":
         await q.edit_message_text("اختار المدرسين أو الكتب أو قبولات الجامعات. نتائج القبول تعتمد على البيانات الرسمية المتاحة. للإدارة استخدم /admin.", reply_markup=home()); return
     if d=="admissions:start":
-        await q.message.reply_text("🎓 قبولات الجامعات 2026-2027\\nدليل الطالب الحكومي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\\nدليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\\nنتائج أوائل المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13\\n\\nاكتب اختصاصك المهني للبحث في سجلات القبول التي يضيفها الأدمن.")
+        await q.message.reply_text("🎓 قبولات الجامعات 2026–2027\nالدليل الحكومي الرسمي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\nدليل الجامعات والكليات الأهلية: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\nقناة أوائل المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-إطلاق-قناة-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-09-29-17\n\nتنبيه: نتائج البحث من السجلات التي أدخلها المشرفون فقط، وليست قاعدة بيانات شاملة بعد. اكتب اختصاصك المهني للبحث.")
         PENDING[uid]={"kind":"admission_search","step":0,"data":{}}
         await q.message.reply_text("اكتب اختصاصك المهني:")
         return
@@ -128,8 +128,10 @@ async def flow(u,c):
             if not any(t in v for t in ("صباح","مساء","اهلي","أهلي","اهلية","أهلية")): await msg.reply_text("اكتب صباحي أو مسائي أو أهلي."); return
             x["mode"]="صباحي" if "صباح" in v else ("مسائي" if "مساء" in v else "أهلي"); f["step"]=2; await msg.reply_text("اكتب المحافظة:"); return
         if step==2: x["governorate"]=body; f["step"]=3; await msg.reply_text("اكتب معدلك من 0 إلى 100:"); return
-        try: x["average"]=float(body.replace(",",".")) 
+        try: x["average"]=float(body.replace(",","."))
         except ValueError: await msg.reply_text("اكتب المعدل بالأرقام مثل 62."); return
+        if not 0 <= x["average"] <= 100:
+            await msg.reply_text("المعدل لازم يكون بين 0 و100."); return
         PENDING.pop(uid,None)
         found=[]
         for a in DATA.get("admissions",[]):
@@ -140,10 +142,10 @@ async def flow(u,c):
                 found.append(a)
         if found:
             lines=["نتائج مطابقة للسجلات التي أدخلها الأدمن (ليست ضمان قبول):"]
-            for a in found[:15]: lines.append(f"\\n{a.get('college')} — {a.get('major')}\\nالمحافظة: {a.get('governorate')} | الدراسة: {a.get('mode')}\\nأقل معدل مسجل: {a.get('min_average')}\\nالمصدر: {a.get('url','غير مضاف')}")
-            await msg.reply_text("\\n".join(lines)[:3900],reply_markup=home())
+            for a in found[:15]: lines.append(f"\n{a.get('college')} — {a.get('major')}\nالمحافظة: {a.get('governorate')} | الدراسة: {a.get('mode')}\nأقل معدل مسجل: {a.get('min_average')}\nالمصدر: {a.get('url','غير مضاف')}")
+            await msg.reply_text("\n".join(lines)[:3900],reply_markup=home())
         else:
-            await msg.reply_text("ماكو سجل قبول مدخل ومطابق حالياً؛ هذا لا يعني أنك غير مقبول. راجع الدليل الرسمي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\\nودليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf",reply_markup=home())
+            await msg.reply_text("ماكو سجل قبول مدخل ومطابق حالياً؛ هذا لا يعني أنك غير مقبول. راجع الدليل الرسمي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\nودليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf",reply_markup=home())
         return
     if not admin(uid): return
     if kind=="admission":
