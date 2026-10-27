@@ -4,11 +4,13 @@ on:
     paths:
       - "edu_bot.py"
       - "admissions_2026_2027.json"
+      - "scripts/validate_admissions.py"
       - ".github/workflows/validate-admissions.yml"
   pull_request:
     paths:
       - "edu_bot.py"
       - "admissions_2026_2027.json"
+      - "scripts/validate_admissions.py"
       - ".github/workflows/validate-admissions.yml"
 jobs:
   validate:
@@ -20,18 +22,5 @@ jobs:
           python-version: "3.12"
       - name: Compile bot
         run: python -m py_compile edu_bot.py
-      - name: Validate admissions JSON
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          data = json.loads(Path("admissions_2026_2027.json").read_text(encoding="utf-8"))
-          pathways = data.get("extraction", {}).get("verified_pathways", [])
-          assert pathways, "No verified pathways found"
-          assert all(p.get("department") and p.get("vocational_branches") and p.get("source_page") for p in pathways), "Incomplete pathway record"
-          assert all(p.get("minimum_average") is None for p in pathways), "Pathway table values must not be mistaken for competitive cutoffs"
-          private = data.get("private_admissions", {})
-          assert private.get("published_minimums"), "Official private minimums missing"
-          assert all(0 <= row["minimum_average"] <= 100 for row in private["published_minimums"]), "Invalid private minimum"
-          print(f"Validated {len(pathways)} technical pathways and {len(private['published_minimums'])} published private minimums.")
-          PY
+      - name: Validate official admissions registry
+        run: python scripts/validate_admissions.py
