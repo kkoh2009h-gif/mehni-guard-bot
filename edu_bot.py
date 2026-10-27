@@ -37,7 +37,7 @@ def kb(rows): return InlineKeyboardMarkup([[InlineKeyboardButton(t, callback_dat
 def home():
     return kb([("👨‍🏫 المدرسون","browse:teachers"),("📝 الملازم","browse:booklets"),("📚 الكتب","browse:books"),("💡 معلومات الدراسة","browse:info"),("🎓 قبولات الجامعات","admissions:start"),("ℹ️ المساعدة","help")])
 def panel():
-    return kb([("➕ إضافة مدرس","add:teacher"),("➕ إضافة ملزمة","add:booklet"),("➕ إضافة كتاب","add:book"),("➕ إضافة معلومة","add:info"),("📋 عرض المحتوى","list"),("👥 إدارة المشرفين","admins")])
+    return kb([("➕ إضافة مدرس","add:teacher"),("➕ إضافة ملزمة","add:booklet"),("➕ إضافة كتاب","add:book"),("➕ إضافة معلومة","add:info"),("➕ إضافة سجل قبول","add:admission"),("📋 عرض المحتوى","list"),("👥 إدارة المشرفين","admins")])
 
 async def start(u,c):
     await u.effective_message.reply_text("🎓 أهلاً بيك ببوت المهني التعليمي\nاختار المدرسين أو الكتب والملازم.", reply_markup=home())
@@ -68,7 +68,10 @@ async def cb(u,c):
     if d=="help":
         await q.edit_message_text("اختار المدرسين أو الكتب أو قبولات الجامعات. نتائج القبول تعتمد على البيانات الرسمية المتاحة. للإدارة استخدم /admin.", reply_markup=home()); return
     if d=="admissions:start":
-        await q.message.reply_text("🎓 قبولات الجامعات 2026-2027\\nالدليل الحكومي: https://dirasat.mohesr.gov.iq/\\nدليل الجامعات والكليات الأهلية: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\\nنتائج قبول الطلبة الأوائل من المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13\\n\\nتنبيه: الروابط الرسمية هي المرجع النهائي؛ لم تُستخرج بعد كل الحدود الدنيا لكل قسم من الأدلة."); return
+        await q.message.reply_text("🎓 قبولات الجامعات 2026-2027\\nدليل الطالب الحكومي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\\nدليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\\nنتائج أوائل المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-نتائج-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-10-22-13\\n\\nتگدر تبحث بالسجلات اللي يضيفها الأدمن أو تراجع الدليل الرسمي.").reply_markup if False else None
+        PENDING[uid]={"kind":"admission_search","step":0,"data":{}}
+        await q.message.reply_text("حتى نطابق القبولات، اكتب اختصاصك المهني:")
+        return
     if d=="home":
         await q.edit_message_text("🎓 بوت المهني التعليمي", reply_markup=home()); return
     if d.startswith("browse:"):
@@ -112,12 +115,59 @@ async def cb(u,c):
                 lines += [f"\n{label}:"] + [f"#{x['id']} {x.get('title')} | {x.get('department')} | {x.get('stage')}" for x in DATA[section]]
             await q.message.reply_text("\n".join(lines)[:4000] if len(lines)>2 else "المكتبة فارغة."); return
         kind=d.split(":")[1]; PENDING[uid]={"kind":kind,"step":0,"data":{}}
-        prompts={"teacher":"اكتب اسم المدرس:","booklet":"اكتب عنوان الملزمة:","book":"اكتب عنوان الكتاب:","info":"اكتب عنوان المعلومة:"}
+        prompts={"teacher":"اكتب اسم المدرس:","booklet":"اكتب عنوان الملزمة:","book":"اكتب عنوان الكتاب:","info":"اكتب عنوان المعلومة:","admission":"اكتب اسم الجامعة أو الكلية:"}
         await q.message.reply_text(prompts.get(kind,"اكتب العنوان:"))
 async def flow(u,c):
     uid=u.effective_user.id; msg=u.effective_message
-    if not admin(uid) or uid not in PENDING or not msg.text: return
+    if uid not in PENDING or not msg.text: return
     f=PENDING[uid]; x=f["data"]; step=f["step"]; kind=f["kind"]; body=msg.text.strip()
+    if kind=="admission_search":
+        if step==0: x["department"]=body; f["step"]=1; await msg.reply_text("نوع الدراسة: صباحي أو مسائي أو أهلي؟"); return
+        if step==1:
+            v=body.lower()
+            if not any(t in v for t in ("صباح","مساء","اهلي","أهلي","اهلية","أهلية")): await msg.reply_text("اكتب صباحي أو مسائي أو أهلي."); return
+            x["mode"]="صباحي" if "صباح" in v else ("مسائي" if "مساء" in v else "أهلي"); f["step"]=2; await msg.reply_text("اكتب المحافظة:"); return
+        if step==2: x["governorate"]=body; f["step"]=3; await msg.reply_text("اكتب معدلك من 0 إلى 100:"); return
+        try: x["average"]=float(body.replace(",",".")) 
+        except ValueError: await msg.reply_text("اكتب المعدل بالأرقام مثل 62."); return
+        PENDING.pop(uid,None)
+        found=[]
+        for a in DATA.get("admissions",[]):
+            try: mn=float(a.get("min_average"))
+            except (TypeError,ValueError): continue
+            br=a.get("department","")
+            if a.get("mode")==x["mode"] and a.get("governorate","").casefold()==x["governorate"].casefold() and x["average"]>=mn and (not br or br.casefold()=="الكل" or br.casefold() in x["department"].casefold() or x["department"].casefold() in br.casefold()):
+                found.append(a)
+        if found:
+            lines=["نتائج مطابقة للسجلات التي أدخلها الأدمن (ليست ضمان قبول):"]
+            for a in found[:15]: lines.append(f"\\n{a.get('college')} — {a.get('major')}\\nالمحافظة: {a.get('governorate')} | الدراسة: {a.get('mode')}\\nأقل معدل مسجل: {a.get('min_average')}\\nالمصدر: {a.get('url','غير مضاف')}")
+            await msg.reply_text("\\n".join(lines)[:3900],reply_markup=home())
+        else:
+            await msg.reply_text("ماكو سجل قبول مدخل ومطابق حالياً؛ هذا لا يعني أنك غير مقبول. راجع الدليل الرسمي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\\nودليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf",reply_markup=home())
+        return
+    if not admin(uid): return
+    if kind=="admission":
+        fields=[("college","اكتب اسم الجامعة/الكلية:"),("major","اكتب الاختصاص:"),("department","اكتب الفرع المهني المقبول أو اكتب الكل:"),("mode","اكتب صباحي أو مسائي أو أهلي:"),("governorate","اكتب المحافظة:"),("min_average","أقل معدل حسب المصدر (رقم):"),("url","رابط المصدر الرسمي https:// أو اكتب لا:")]
+        key,prompt=fields[step]
+        if key=="min_average":
+            try: x[key]=float(body.replace(",",".")) 
+            except ValueError: await msg.reply_text("اكتب المعدل كرقم."); return
+            if not 0<=x[key]<=100: await msg.reply_text("المعدل بين 0 و100."); return
+        elif key=="mode":
+            v=body.lower()
+            if not any(t in v for t in ("صباح","مساء","اهلي","أهلي","اهلية","أهلية")): await msg.reply_text("اكتب صباحي أو مسائي أو أهلي."); return
+            x[key]="صباحي" if "صباح" in v else ("مسائي" if "مساء" in v else "أهلي")
+        elif key=="department": x[key]="" if body in ("الكل","كل") else body
+        elif key=="url":
+            if body.lower() in ("لا","بدون","لا يوجد"): x[key]=""
+            elif body.startswith("https://"): x[key]=body
+            else: await msg.reply_text("الرابط لازم يبدأ https:// أو اكتب لا."); return
+        else: x[key]=body
+        f["step"]+=1
+        if f["step"]<len(fields): await msg.reply_text(fields[f["step"]][1]); return
+        x["id"]=max([z.get("id",0) for k in ("teachers","booklets","books","info","admissions") for z in DATA.get(k,[])]+[0])+1
+        DATA["admissions"].append(x.copy()); save(); PENDING.pop(uid,None)
+        await msg.reply_text("تم حفظ سجل القبول. تأكد أن المعدل من مصدر رسمي.",reply_markup=panel()); return
     if step==0:
         x["name" if kind=="teacher" else "title"]=body; f["step"]=1
         await msg.reply_text("اختار رقم القسم:\n"+"\n".join(f"{i+1}. {v}" for i,v in enumerate(DEPARTMENTS)))
