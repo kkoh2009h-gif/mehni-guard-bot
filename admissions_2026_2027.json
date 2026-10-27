@@ -141,12 +141,16 @@
     "source_id": "procedures_guide",
     "official_section": "ملحق 11: جدول مسارات التعليم لقبول خريجي الإعداديات المهنية في كليات البوليتكنك والمعاهد التقنية للدراستين الصباحية والمسائية",
     "source_pages": [
+      237,
+      238,
+      239,
+      240,
       241,
       242,
       243
     ],
     "extracted_on": "2026-10-27",
-    "scope_note_ar": "هذه المسارات المستخرجة تخص مطابقة اختصاصات مهنية مع أقسام مذكورة في ملحق 11، ولا تثبت وجود القسم في كل مؤسسة، ولا تمثل معدلات تنافسية أو ضمان قبول. اسم الكلية/المعهد التفصيلي يجب مطابقته مع دليل الطالب وخطة المؤسسة.",
+    "scope_note_ar": "تمت توسعة المسارات من جدول ملحق 11 في دليل إجراءات شؤون الطلبة 2026-2027، صفحات الدليل المطبوعة 237-243. هذه شروط مطابقة مهنية عامة للكليات التقنية/البوليتكنك والمعاهد بحسب الجدول؛ لا تؤكد وجود التخصص في كل مؤسسة ولا تمثل معدلات قبول تنافسية.",
     "verified_pathways": [
       {
         "id": "polytechnic_engineering_electrical",
@@ -421,6 +425,282 @@
         "minimum_average": null,
         "minimum_average_type": "not_published_in_pathway_table",
         "source_page": 243
+      },
+      {
+        "id": "polytechnic_electrical_electronic",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "هندسة التقنيات الكهربائية والإلكترونية",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / أجهزة طبية",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / توليد الطاقة الكهربائية ونقلها",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / صيانة منظومات الليزر",
+          "صناعي / اتصالات",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 243,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "polytechnic_electronic_ai",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "هندسة تقنيات الإلكترونيات والذكاء الاصطناعي",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / أجهزة طبية",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / توليد الطاقة الكهربائية ونقلها",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / صيانة منظومات الليزر",
+          "صناعي / اتصالات",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 242,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "polytechnic_electrical_smart_systems",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "هندسة التقنيات الكهربائية والأنظمة الذكية",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / أجهزة طبية",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / توليد الطاقة الكهربائية ونقلها",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / صيانة منظومات الليزر",
+          "صناعي / اتصالات",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 241,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "polytechnic_mechanical_technologies",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "هندسة التقنيات الميكانيكية",
+        "vocational_branches": [
+          "صناعي / تكنولوجيا السباكة",
+          "صناعي / تكنولوجيا ميكاترونكس صناعية",
+          "صناعي / تكييف الهواء والتثليج",
+          "صناعي / معالجة المياه وشبكاته",
+          "صناعي / ميكانيك",
+          "صناعي / ميكاترونكس السيارات",
+          "صناعي / سيارات",
+          "صناعي / لحام وتشكيل معادن",
+          "صناعي / نجارة",
+          "صناعي / نسيج"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 239,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "polytechnic_power_mechanical",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "هندسة تقنيات ميكانيك القدرة",
+        "vocational_branches": [
+          "صناعي / تكنولوجيا السباكة",
+          "صناعي / تكنولوجيا ميكاترونكس صناعية",
+          "صناعي / تكييف الهواء والتثليج",
+          "صناعي / معالجة المياه وشبكاته",
+          "صناعي / ميكانيك",
+          "صناعي / ميكاترونكس السيارات",
+          "صناعي / سيارات",
+          "صناعي / لحام وتشكيل معادن",
+          "صناعي / نجارة",
+          "صناعي / نسيج"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 239,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "polytechnic_mechatronic_systems",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "هندسة تقنيات النظم الكهروميكانيكية",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "صناعي / أجهزة طبية",
+          "صناعي / تكنولوجيا ميكاترونكس صناعية",
+          "صناعي / تكييف الهواء والتثليج",
+          "صناعي / توليد الطاقة الكهربائية ونقلها",
+          "صناعي / ميكاترونكس السيارات",
+          "صناعي / ميكانيك",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 238,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "polytechnic_electrical_automation",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "هندسة تقنيات السيطرة والأتمتة",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / اتصالات",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 237,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "polytechnic_electrical_energy",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "هندسة التقنيات الكهربائية",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / أجهزة طبية",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / توليد الطاقة الكهربائية ونقلها",
+          "صناعي / صيانة المصاعد الكهربائية",
+          "صناعي / صيانة منظومات الليزر",
+          "صناعي / اتصالات",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 239,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "polytechnic_digital_media",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "تقنيات الإعلام الرقمي",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / اتصالات",
+          "صناعي / إلكترونيك وسيطرة"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 239,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "technical_administrative_information",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "تقنيات المعلومات",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب",
+          "صناعي / تكنولوجيا الإعلام",
+          "صناعي / إلكترونيك وسيطرة",
+          "صناعي / كهرباء"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 238,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
+      },
+      {
+        "id": "technical_administrative_statistics",
+        "institution_type": "polytechnic_or_technical_institute",
+        "college_group": "البوليتكنك أو المعاهد التقنية حسب المؤسسة",
+        "department": "تقنيات الإحصاء والمعلوماتية",
+        "vocational_branches": [
+          "تقنية المعلومات والحاسوب / أجهزة الهاتف المحمول والحاسوب",
+          "تقنية المعلومات والحاسوب / الإدارة الإلكترونية",
+          "تقنية المعلومات والحاسوب / تجميع وصيانة الحاسوب",
+          "تقنية المعلومات والحاسوب / شبكات الحاسوب"
+        ],
+        "study_modes": [
+          "morning",
+          "evening"
+        ],
+        "minimum_average": null,
+        "minimum_average_type": "not_published_in_pathway_table",
+        "source_page": 238,
+        "source_url": "https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf"
       }
     ]
   }
