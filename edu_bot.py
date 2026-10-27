@@ -68,7 +68,7 @@ async def cb(u,c):
     if d=="help":
         await q.edit_message_text("اختار المدرسين أو الكتب أو قبولات الجامعات. نتائج القبول تعتمد على البيانات الرسمية المتاحة. للإدارة استخدم /admin.", reply_markup=home()); return
     if d=="admissions:start":
-        await q.message.reply_text("🎓 قبولات الجامعات 2026–2027\nالدليل الحكومي الرسمي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\nدليل الجامعات والكليات الأهلية: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\nقناة أوائل المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-إطلاق-قناة-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-09-29-17\n\nتنبيه: نتائج البحث من السجلات التي أدخلها المشرفون فقط، وليست قاعدة بيانات شاملة بعد. اكتب اختصاصك المهني للبحث.")
+        await q.message.reply_text("🎓 قبولات الجامعات 2026–2027\nالدليل الحكومي الرسمي: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar\nدليل الجامعات والكليات الأهلية: https://cent.mohesr.gov.iq/Ahly2026v3.pdf\nقناة أوائل المهني: https://mohesr.gov.iq/ar/post/التعليم-تعلن-إطلاق-قناة-قبول-الطلبة-الأوائل-من-خريجي-الدراسة-المهنية-2026-09-29-17\n\nتنبيه: النتائج تعرض المسارات المستخرجة من الأدلة الرسمية والسجلات التي يضيفها المشرفون. ليست ضمان قبول نهائي. اكتب اختصاصك المهني للبحث.")
         PENDING[uid]={"kind":"admission_search","step":0,"data":{}}
         await q.message.reply_text("اكتب اختصاصك المهني:")
         return
@@ -179,16 +179,12 @@ async def flow(u,c):
                     for p in private_matches[:10]:
                         lines.append(f"\n• {p['department']}\nالفروع المهنية المناظرة: {', '.join(p['vocational_branches'][:5])}\nالحد الأدنى الخاص بهذا السجل: غير مدخل؛ راجع الحد المعلن للتخصص في الدليل.")
                     lines.append("\nتوافر القسم يختلف بين الجامعات والكليات الأهلية؛ هذه مدخلات قبول وليست ضمان قبول.")
-                private_mins=registry.get("private_admissions",{}).get("published_minimums",[])
-                if private_mins:
-                    lines.append("\nالحدود الدنيا المنشورة لأقسام محددة في الدليل الأهلي (ليست خاصة بكل التخصصات المهنية):")
-                    for m in private_mins[:6]:
-                        lines.append(f"• {m['department']} — {m['study_mode']} — {m['minimum_average']}% (ص {m['source_page']})")
         except Exception:
             log.exception("Could not read official admissions pathway registry")
         if lines:
             lines.append("\nالدليل الرسمي: https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf")
             lines.append("دليل الطالب: https://dirasat.mohesr.gov.iq/download-center.html?lang=ar")
+            lines.append("دليل الأهلي 2026–2027: https://mohesr.gov.iq/ar/assets/img/uploaded_files/17092026.pdf")
             await msg.reply_text("\n".join(lines)[:3900],reply_markup=home())
         else:
             await msg.reply_text("ماكو سجل أو مسار مطابق حالياً؛ هذا لا يعني أنك غير مقبول. راجع الدليل الرسمي: https://mohesr.gov.iq/ar/assets/img/uploaded_files/006092026.pdf\nودليل الأهلي: https://cent.mohesr.gov.iq/Ahly2026v3.pdf",reply_markup=home())
